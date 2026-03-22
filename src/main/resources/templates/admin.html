@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1b5e20, #66bb6a);
+            color: white;
+        }
+
+        h2 {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 15px;
+        }
+
+        .section {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .info {
+            flex: 1;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .approve {
+            background: #2e7d32;
+        }
+
+        .delete {
+            background: #c62828;
+        }
+
+        .unlock {
+            background: #1565c0;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .empty {
+            text-align: center;
+            color: gray;
+        }
+
+        /* 📱 Responsive */
+        @media (max-width: 600px) {
+            .row {
+                flex-direction: column;
+            }
+
+            .buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>⚙️ Admin Dashboard</h2>
+
+<div class="container">
+
+    <!-- 👨‍🌾 Farmer Requests -->
+    <div class="section">
+        <h3>👨‍🌾 Farmer Requests</h3>
+        <div id="requests">Loading...</div>
+    </div>
+
+    <!-- 🔒 Locked Users -->
+    <div class="section">
+        <h3>🔒 Locked Users</h3>
+        <div id="lockedUsers">Loading...</div>
+    </div>
+
+</div>
+
+<script>
+
+const role = localStorage.getItem("role");
+
+if(role !== "ADMIN") {
+    alert("Unauthorized Access!");
+    window.location.href = "/";
+}
+
+
+// 📌 Load Farmer Requests
+function loadRequests() {
+    fetch('/admin/requests')
+    .then(res => res.json())
+    .then(data => {
+        let html = "";
+
+        if(data.length === 0) {
+            html = "<p class='empty'>No pending requests</p>";
+        }
+
+        data.forEach(r => {
+            html += `
+            <div class="card">
+                <div class="row">
+                    <div class="info">
+                        <b>${r.name}</b><br>
+                        <small>${r.email}</small>
+                    </div>
+                    <div class="buttons">
+                        <button class="approve" onclick="approve(${r.requestId})">Approve</button>
+                        <button class="delete" onclick="deleteRequest(${r.requestId})">Delete</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        document.getElementById("requests").innerHTML = html;
+    });
+}
+
+// 📌 Approve Farmer
+function approve(id) {
+    fetch('/admin/approve/' + id, { method: 'POST' })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        loadRequests();
+    });
+}
+
+// 📌 Delete Farmer Request
+function deleteRequest(id) {
+    fetch('/admin/request/' + id, { method: 'DELETE' })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        loadRequests();
+    });
+}
+
+// 📌 Load Locked Users
+function loadLockedUsers() {
+    fetch('/admin/locked-users')
+    .then(res => res.json())
+    .then(data => {
+        let html = "";
+
+        if(data.length === 0) {
+            html = "<p class='empty'>No locked users</p>";
+        }
+
+        data.forEach(u => {
+            html += `
+            <div class="card">
+                <div class="row">
+                    <div class="info">
+                        <b>${u.name}</b><br>
+                        <small>${u.email}</small>
+                    </div>
+                    <div class="buttons">
+                        <button class="unlock" onclick="unlock(${u.userId})">Unlock</button>
+                        <button class="delete" onclick="deleteUser(${u.userId})">Delete</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        document.getElementById("lockedUsers").innerHTML = html;
+    });
+}
+
+// 📌 Unlock User
+function unlock(id) {
+    fetch('/admin/unlock/' + id, { method: 'POST' })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        loadLockedUsers();
+    });
+}
+
+// 📌 Delete User
+function deleteUser(id) {
+    fetch('/admin/user/' + id, { method: 'DELETE' })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        loadLockedUsers();
+    });
+}
+
+// 🚀 Load all on start
+loadRequests();
+loadLockedUsers();
+
+</script>
+
+</body>
+</html>

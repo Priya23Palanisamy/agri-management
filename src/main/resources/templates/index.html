@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agri Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: linear-gradient(135deg, #2e7d32, #66bb6a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+
+        .card {
+            background: white;
+            color: black;
+            padding: 30px;
+            border-radius: 15px;
+            width: 320px;
+            text-align: center;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: #2e7d32;
+            color: white;
+            border: none;
+        }
+
+        a {
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>🌱 Login</h2>
+
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <a href="/farmer">Farmer Register</a>
+    <a href="/buyer">Buyer Register</a>
+    <a href="/forgot-password">Forgot Password?</a>
+</div>
+
+<script>
+
+function goAdmin() {
+    const role = localStorage.getItem("role");
+
+    if(role !== "ADMIN") {
+        alert("Access Denied!");
+        return;
+    }
+
+    window.location.href = "/admin";
+}
+function login() {
+    fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value
+        })
+    })
+    .then(res => {
+
+        // 🔴 IF ERROR (like wrong password)
+        if (!res.ok) {
+            return res.text().then(msg => {
+                throw new Error(msg);
+            });
+        }
+
+        // ✅ IF SUCCESS
+        return res.json();
+    })
+    .then(data => {
+
+        console.log("Login Success:", data);
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.role);
+
+        if (data.role === "ADMIN") {
+            window.location.href = "/admin-dashboard";
+        } 
+        else if (data.role === "FARMER") {
+            window.location.href = "/farmer-dashboard";
+        } 
+        else {
+            window.location.href = "/buyer-dashboard";
+        }
+    })
+    .catch(err => {
+        console.error("Login Error:", err.message);
+        alert(err.message);  // 🔥 show actual error
+    });
+}
+</script>
+
+</body>
+</html>
