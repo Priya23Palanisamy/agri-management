@@ -1,248 +1,314 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1b5e20, #66bb6a);
-            color: white;
-        }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 
-        h2 {
-            text-align: center;
-            padding: 20px 0;
-        }
+body{
+display:flex;
+height:100vh;
+background:#020617;
+color:white;
+}
 
-        .container {
-            max-width: 1000px;
-            margin: auto;
-            padding: 15px;
-        }
+/* GRID BACKGROUND */
+body::before{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+background-size:40px 40px;
+}
 
-        .section {
-            background: white;
-            color: black;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
+/* SIDEBAR */
+.sidebar{
+width:230px;
+background:rgba(255,255,255,0.04);
+backdrop-filter:blur(20px);
+border-right:1px solid rgba(255,255,255,0.08);
+padding:20px;
+z-index:2;
+}
 
-        .section h3 {
-            margin-top: 0;
-            text-align: center;
-        }
+.sidebar h2{margin-bottom:20px;}
 
-        .card {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
+.sidebar a{
+display:block;
+padding:10px;
+border-radius:8px;
+color:#94a3b8;
+text-decoration:none;
+margin-bottom:8px;
+}
 
-        .row {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+.sidebar a:hover{
+background:rgba(255,255,255,0.05);
+color:white;
+}
 
-        .info {
-            flex: 1;
-        }
+/* MAIN */
+.main{
+flex:1;
+padding:25px;
+overflow-y:auto;
+z-index:2;
+}
 
-        .buttons {
-            display: flex;
-            gap: 10px;
-        }
+.section{margin-bottom:30px;}
 
-        button {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            color: white;
-        }
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+}
 
-        .approve {
-            background: #2e7d32;
-        }
+/* CARD */
+.card{
+padding:18px;
+border-radius:14px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+transition:.3s;
+}
 
-        .delete {
-            background: #c62828;
-        }
+.card:hover{
+transform:translateY(-5px);
+box-shadow:0 20px 50px rgba(0,0,0,0.6);
+}
 
-        .unlock {
-            background: #1565c0;
-        }
+input{
+width:100%;
+padding:8px;
+margin-top:6px;
+border-radius:8px;
+border:none;
+background:rgba(255,255,255,0.1);
+color:white;
+}
 
-        button:hover {
-            opacity: 0.9;
-        }
+button{
+margin-top:6px;
+padding:8px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+color:white;
+cursor:pointer;
+width:100%;
+}
 
-        .empty {
-            text-align: center;
-            color: gray;
-        }
+button:hover{opacity:.85;}
 
-        /* 📱 Responsive */
-        @media (max-width: 600px) {
-            .row {
-                flex-direction: column;
-            }
-
-            .buttons {
-                justify-content: center;
-            }
-        }
-    </style>
+.danger{background:#ef4444;}
+</style>
 </head>
 
 <body>
 
-<h2>⚙️ Admin Dashboard</h2>
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>⚙️ Admin</h2>
+<a href="/admin-dashboard">Dashboard</a>
+<a href="#products">Inventory</a>
+<a href="#requests">Farmer Approval</a>
+<a href="#users">Users</a>
+<a href="/">Logout</a>
+</div>
 
-<div class="container">
+<!-- MAIN -->
+<div class="main">
 
-    <!-- 👨‍🌾 Farmer Requests -->
-    <div class="section">
-        <h3>👨‍🌾 Farmer Requests</h3>
-        <div id="requests">Loading...</div>
-    </div>
+<h2>📊 Admin Dashboard</h2>
 
-    <!-- 🔒 Locked Users -->
-    <div class="section">
-        <h3>🔒 Locked Users</h3>
-        <div id="lockedUsers">Loading...</div>
-    </div>
+<!-- STATS -->
+<div class="section">
+<h3>System Stats</h3>
+<div id="stats" class="grid"></div>
+</div>
+
+<!-- INVENTORY -->
+<div class="section">
+<h3 id="products">📦 Inventory</h3>
+<div id="products" class="grid"></div>
+</div>
+
+<!-- FARMER APPROVAL -->
+<div class="section">
+<h3 id="requests">🌾 Farmer Approval Requests</h3>
+<p style="color:#94a3b8; margin-bottom:10px;">
+Approve or reject farmers before allowing access
+</p>
+<div id="requests" class="grid"></div>
+</div>
+
+<!-- USERS -->
+<div class="section">
+<h3 id="users">🔒 Locked Users</h3>
+<div id="lockedUsers" class="grid"></div>
+</div>
 
 </div>
 
 <script>
 
-const role = localStorage.getItem("role");
-
-if(role !== "ADMIN") {
-    alert("Unauthorized Access!");
+// 🔐 ROLE PROTECTION
+if(localStorage.getItem("role") !== "ADMIN"){
     window.location.href = "/";
 }
 
-
-// 📌 Load Farmer Requests
-function loadRequests() {
-    fetch('/admin/requests')
-    .then(res => res.json())
-    .then(data => {
-        let html = "";
-
-        if(data.length === 0) {
-            html = "<p class='empty'>No pending requests</p>";
-        }
-
-        data.forEach(r => {
-            html += `
-            <div class="card">
-                <div class="row">
-                    <div class="info">
-                        <b>${r.name}</b><br>
-                        <small>${r.email}</small>
-                    </div>
-                    <div class="buttons">
-                        <button class="approve" onclick="approve(${r.requestId})">Approve</button>
-                        <button class="delete" onclick="deleteRequest(${r.requestId})">Delete</button>
-                    </div>
-                </div>
-            </div>`;
-        });
-
-        document.getElementById("requests").innerHTML = html;
-    });
+// ✅ STATS
+function loadStats(){
+fetch('/admin/stats')
+.then(res => res.json())
+.then(data => {
+document.getElementById("stats").innerHTML = `
+<div class="card">Users: ${data.totalUsers}</div>
+<div class="card">Farmers: ${data.farmers}</div>
+<div class="card">Buyers: ${data.buyers}</div>`;
+});
 }
 
-// 📌 Approve Farmer
-function approve(id) {
-    fetch('/admin/approve/' + id, { method: 'POST' })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        loadRequests();
-    });
+// ✅ PRODUCTS
+function loadProducts(){
+fetch('/products/all')
+.then(res => res.json())
+.then(data => {
+
+let html = "";
+
+data.forEach(p => {
+html += `
+<div class="card">
+<b>${p.name}</b><br><br>
+SKU: ${p.skuCode}<br>
+Qty: ${p.quantity}<br>
+Price: ₹${p.price}
+
+<input id="in-${p.productId}" placeholder="Add qty">
+<button onclick="stockIn(${p.productId})">Stock In</button>
+
+<input id="out-${p.productId}" placeholder="Remove qty">
+<button onclick="stockOut(${p.productId})">Stock Out</button>
+
+<button class="danger" onclick="deleteProduct(${p.productId})">Delete</button>
+</div>`;
+});
+
+document.getElementById("products").innerHTML = html;
+});
 }
 
-// 📌 Delete Farmer Request
-function deleteRequest(id) {
-    fetch('/admin/request/' + id, { method: 'DELETE' })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        loadRequests();
-    });
+// ✅ FARMER REQUESTS (FIXED)
+function loadRequests(){
+fetch('/admin/requests')
+.then(res => res.json())
+.then(data => {
+
+let html = "";
+
+// 🔥 HANDLE EMPTY
+if(data.length === 0){
+html = "<p>No pending farmer requests</p>";
 }
 
-// 📌 Load Locked Users
-function loadLockedUsers() {
-    fetch('/admin/locked-users')
-    .then(res => res.json())
-    .then(data => {
-        let html = "";
+data.forEach(r => {
+html += `
+<div class="card">
+<b>${r.name}</b><br>
+${r.email}<br><br>
 
-        if(data.length === 0) {
-            html = "<p class='empty'>No locked users</p>";
-        }
+<button onclick="approve(${r.requestId})">
+✅ Approve Farmer
+</button>
 
-        data.forEach(u => {
-            html += `
-            <div class="card">
-                <div class="row">
-                    <div class="info">
-                        <b>${u.name}</b><br>
-                        <small>${u.email}</small>
-                    </div>
-                    <div class="buttons">
-                        <button class="unlock" onclick="unlock(${u.userId})">Unlock</button>
-                        <button class="delete" onclick="deleteUser(${u.userId})">Delete</button>
-                    </div>
-                </div>
-            </div>`;
-        });
+<button class="danger" onclick="deleteRequest(${r.requestId})">
+❌ Reject
+</button>
+</div>`;
+});
 
-        document.getElementById("lockedUsers").innerHTML = html;
-    });
+document.getElementById("requests").innerHTML = html;
+});
 }
 
-// 📌 Unlock User
-function unlock(id) {
-    fetch('/admin/unlock/' + id, { method: 'POST' })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        loadLockedUsers();
-    });
+// ✅ LOCKED USERS
+function loadLockedUsers(){
+fetch('/admin/locked-users')
+.then(res => res.json())
+.then(data => {
+
+let html = "";
+
+data.forEach(u => {
+html += `
+<div class="card">
+<b>${u.name}</b><br>
+${u.email}<br><br>
+
+<button onclick="unlock(${u.userId})">Unlock</button>
+<button class="danger" onclick="deleteUser(${u.userId})">Delete</button>
+</div>`;
+});
+
+document.getElementById("lockedUsers").innerHTML = html;
+});
 }
 
-// 📌 Delete User
-function deleteUser(id) {
-    fetch('/admin/user/' + id, { method: 'DELETE' })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        loadLockedUsers();
-    });
+// 🔥 ACTIONS
+
+function stockIn(id){
+const qty=document.getElementById("in-"+id).value;
+if(!qty){alert("Enter quantity");return;}
+fetch(`/products/stock-in?productId=${id}&quantity=${qty}`,{method:'POST'})
+.then(()=>loadProducts());
 }
 
-// 🚀 Load all on start
+function stockOut(id){
+const qty=document.getElementById("out-"+id).value;
+if(!qty){alert("Enter quantity");return;}
+fetch(`/products/stock-out?productId=${id}&quantity=${qty}`,{method:'POST'})
+.then(()=>loadProducts());
+}
+
+function deleteProduct(id){
+fetch(`/products/delete/${id}`,{method:'DELETE'})
+.then(()=>loadProducts());
+}
+
+function approve(id){
+fetch(`/admin/approve/${id}`,{method:'POST'})
+.then(()=>loadRequests());
+}
+
+function deleteRequest(id){
+fetch(`/admin/request/${id}`,{method:'DELETE'})
+.then(()=>loadRequests());
+}
+
+function unlock(id){
+fetch(`/admin/unlock/${id}`,{method:'POST'})
+.then(()=>loadLockedUsers());
+}
+
+function deleteUser(id){
+fetch(`/admin/user/${id}`,{method:'DELETE'})
+.then(()=>loadLockedUsers());
+}
+
+// 🚀 LOAD ALL
+window.onload=function(){
+loadStats();
+loadProducts();
 loadRequests();
 loadLockedUsers();
+};
 
 </script>
 

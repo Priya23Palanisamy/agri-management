@@ -11,6 +11,7 @@ public class PageController {
         return "index";
     }
 
+    // ✅ Only return HTML page (NOT API)
     @GetMapping("/farmer")
     public String farmer() {
         return "farmer";
@@ -25,6 +26,7 @@ public class PageController {
     public String admin() {
         return "admin";
     }
+
     @GetMapping("/farmer-dashboard")
     public String farmerDashboard() {
         return "farmer-dashboard";
@@ -39,6 +41,7 @@ public class PageController {
     public String adminDashboard() {
         return "admin";
     }
+
     @GetMapping("/forgot-password")
     public String forgotPasswordPage() {
         return "forgot-password";
