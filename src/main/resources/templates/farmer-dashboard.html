@@ -3,263 +3,74 @@
 <head>
 <title>Farmer Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
-
-body{
-display:flex;
-height:100vh;
-background:#020617;
-color:white;
-}
-
-/* GRID BACKGROUND */
-body::before{
-content:"";
-position:absolute;
-inset:0;
-background:
-linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-background-size:40px 40px;
-}
-
-/* SIDEBAR */
-.sidebar{
-width:230px;
-background:rgba(255,255,255,0.04);
-backdrop-filter:blur(20px);
-border-right:1px solid rgba(255,255,255,0.08);
-padding:20px;
-z-index:2;
-}
-
-.sidebar h2{margin-bottom:20px;}
-
-.sidebar a{
-display:block;
-padding:10px;
-border-radius:8px;
-color:#94a3b8;
-text-decoration:none;
-margin-bottom:8px;
-}
-
-.sidebar a:hover{
-background:rgba(255,255,255,0.05);
-color:white;
-}
-
-/* MAIN */
-.main{
-flex:1;
-padding:25px;
-overflow-y:auto;
-z-index:2;
-}
-
-.section{
-margin-bottom:30px;
-}
-
-/* FORM */
-.form-card{
-background:rgba(255,255,255,0.05);
-padding:20px;
-border-radius:16px;
-border:1px solid rgba(255,255,255,0.08);
-max-width:500px;
-}
-
-input,select{
-width:100%;
-padding:10px;
-margin:8px 0;
-border-radius:8px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
-outline:none;
-}
-
-button{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-border:none;
-background:#22c55e;
-color:white;
-cursor:pointer;
-transition:.2s;
-}
-
-button:hover{
-opacity:.85;
-transform:translateY(-1px);
-}
-
-/* PRODUCT GRID */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-}
-
-.card{
-padding:18px;
-border-radius:14px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-transition:.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
-box-shadow:0 20px 50px rgba(0,0,0,0.6);
-}
-
+body{background:#020617;color:white;font-family:Inter;padding:20px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+.card{background:#111;padding:15px;border-radius:10px;}
+input,select,button{width:100%;margin-top:8px;padding:8px;border-radius:6px;border:none;}
+button{background:#22c55e;color:white;}
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-<h2>🌾 Farmer</h2>
-<a href="/farmer-dashboard">Dashboard</a>
-<a href="#products">My Products</a>
-<a href="/">Logout</a>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
 <h2>🌾 Farmer Dashboard</h2>
 
-<!-- ADD PRODUCT -->
-<div class="section">
 <h3>Add Product</h3>
 
-<div class="form-card">
-
-<input id="name" placeholder="Product Name">
-
+<input id="name" placeholder="Name">
 <select id="category">
 <option>Vegetables</option>
 <option>Fruits</option>
-<option>Seeds</option>
-<option>Plants</option>
-<option>Fertilizer</option>
-<option>Pesticide</option>
-<option>Tractor Parts</option>
 </select>
 
 <input id="quantity" type="number" placeholder="Quantity">
-<input id="unit" placeholder="Unit (kg/bag/liter)">
+<input id="unit" placeholder="Unit">
 <input id="price" type="number" placeholder="Price">
 <input id="expiry" type="date">
+<input id="minStock" type="number" placeholder="Min Stock Level">
 
 <button onclick="addProduct()">Add Product</button>
 
-</div>
-</div>
-
-<!-- PRODUCTS -->
-<div class="section">
-<h3 id="products">📦 My Products</h3>
-<div id="myProducts" class="grid"></div>
-</div>
-
-</div>
+<h3>My Products</h3>
+<div id="products" class="grid"></div>
 
 <script>
 
-// 🔐 ROLE PROTECTION
-if(localStorage.getItem("role") !== "FARMER"){
-    window.location.href = "/";
-}
-
-// ✅ ADD PRODUCT (FIXED)
 function addProduct(){
-
-    const name = document.getElementById("name").value;
-    const category = document.getElementById("category").value;
-    const quantity = parseInt(document.getElementById("quantity").value);
-    const unit = document.getElementById("unit").value;
-    const price = parseFloat(document.getElementById("price").value);
-    const expiry = document.getElementById("expiry").value;
-
-    if(!name || !quantity || !price){
-        alert("Please fill all required fields");
-        return;
-    }
-
-    fetch('/products/add',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            name:name,
-            category:category,
-            quantity:quantity,
-            unit:unit,
-            price:price,
-            expiryDate:expiry,
-            farmerId:1
-        })
-    })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        loadMyProducts();
-
-        document.getElementById("name").value = "";
-        document.getElementById("quantity").value = "";
-        document.getElementById("unit").value = "";
-        document.getElementById("price").value = "";
-        document.getElementById("expiry").value = "";
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error adding product");
-    });
+fetch('/products/add',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+name:name.value,
+category:category.value,
+quantity:quantity.value,
+unit:unit.value,
+price:price.value,
+expiryDate:expiry.value,
+farmerId:1,
+minStockLevel:minStock.value || 10
+})
+})
+.then(res=>res.text())
+.then(alert);
 }
 
-// ✅ LOAD PRODUCTS (FIXED)
-function loadMyProducts(){
-
-    fetch('/products/farmer?farmerId=1')
-    .then(res => res.json())
-    .then(data => {
-
-        let html = "";
-
-        if(data.length === 0){
-            html = "<p>No products added yet</p>";
-        }
-
-        data.forEach(p => {
-            html += `
-            <div class="card">
-                <b>${p.name}</b><br><br>
-                SKU: ${p.skuCode}<br>
-                Category: ${p.category}<br>
-                Qty: ${p.quantity} ${p.unit}<br>
-                Price: ₹${p.price}<br>
-                Expiry: ${p.expiryDate || 'N/A'}
-            </div>`;
-        });
-
-        document.getElementById("myProducts").innerHTML = html;
-    })
-    .catch(err => console.error(err));
+function load(){
+fetch('/products/farmer?farmerId=1')
+.then(res=>res.json())
+.then(data=>{
+let html="";
+data.forEach(p=>{
+html+=`<div class="card">${p.name} - ${p.quantity}</div>`;
+});
+document.getElementById("products").innerHTML=html;
+});
 }
 
-// 🚀 LOAD
-window.onload = loadMyProducts;
+window.onload=load;
 
 </script>
 

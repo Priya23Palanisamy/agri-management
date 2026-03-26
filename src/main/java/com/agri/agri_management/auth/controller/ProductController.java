@@ -3,8 +3,8 @@ package com.agri.agri_management.auth.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.agri.agri_management.auth.entity.Product;
-import com.agri.agri_management.auth.service.ProductService;
+import com.agri.agri_management.product.entity.Product;
+import com.agri.agri_management.product.service.ProductService;
 
 import java.util.List;
 

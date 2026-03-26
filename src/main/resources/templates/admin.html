@@ -3,313 +3,112 @@
 <head>
 <title>Admin Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
-
-body{
-display:flex;
-height:100vh;
-background:#020617;
-color:white;
-}
-
-/* GRID BACKGROUND */
-body::before{
-content:"";
-position:absolute;
-inset:0;
-background:
-linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-background-size:40px 40px;
-}
-
-/* SIDEBAR */
-.sidebar{
-width:230px;
-background:rgba(255,255,255,0.04);
-backdrop-filter:blur(20px);
-border-right:1px solid rgba(255,255,255,0.08);
-padding:20px;
-z-index:2;
-}
-
-.sidebar h2{margin-bottom:20px;}
-
-.sidebar a{
-display:block;
-padding:10px;
-border-radius:8px;
-color:#94a3b8;
-text-decoration:none;
-margin-bottom:8px;
-}
-
-.sidebar a:hover{
-background:rgba(255,255,255,0.05);
-color:white;
-}
-
-/* MAIN */
-.main{
-flex:1;
-padding:25px;
-overflow-y:auto;
-z-index:2;
-}
-
-.section{margin-bottom:30px;}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
-}
-
-/* CARD */
-.card{
-padding:18px;
-border-radius:14px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-transition:.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
-box-shadow:0 20px 50px rgba(0,0,0,0.6);
-}
-
-input{
-width:100%;
-padding:8px;
-margin-top:6px;
-border-radius:8px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
-}
-
-button{
-margin-top:6px;
-padding:8px;
-border:none;
-border-radius:8px;
-background:#22c55e;
-color:white;
-cursor:pointer;
-width:100%;
-}
-
-button:hover{opacity:.85;}
-
+body{display:flex;height:100vh;background:#020617;color:white;}
+.sidebar{width:230px;background:rgba(255,255,255,0.04);padding:20px;}
+.main{flex:1;padding:25px;overflow-y:auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
+.card{padding:18px;border-radius:14px;background:rgba(255,255,255,0.05);}
+input,select,button{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:none;}
+button{background:#22c55e;color:white;}
 .danger{background:#ef4444;}
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
 <h2>⚙️ Admin</h2>
-<a href="/admin-dashboard">Dashboard</a>
-<a href="#products">Inventory</a>
-<a href="#requests">Farmer Approval</a>
-<a href="#users">Users</a>
+<a href="#">Dashboard</a>
+<a href="#inventory">Inventory</a>
+<a href="#alerts">Alerts</a>
 <a href="/">Logout</a>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
 <h2>📊 Admin Dashboard</h2>
 
-<!-- STATS -->
-<div class="section">
-<h3>System Stats</h3>
-<div id="stats" class="grid"></div>
-</div>
+<h3 id="inventory">📦 Inventory</h3>
+<div id="productList" class="grid"></div>
 
-<!-- INVENTORY -->
-<div class="section">
-<h3 id="products">📦 Inventory</h3>
-<div id="products" class="grid"></div>
-</div>
+<h3 id="alerts">🔔 Alerts</h3>
 
-<!-- FARMER APPROVAL -->
-<div class="section">
-<h3 id="requests">🌾 Farmer Approval Requests</h3>
-<p style="color:#94a3b8; margin-bottom:10px;">
-Approve or reject farmers before allowing access
-</p>
-<div id="requests" class="grid"></div>
-</div>
+<select id="alertFilter" onchange="loadAlerts()">
+<option value="">All</option>
+<option value="HIGH">High</option>
+<option value="MEDIUM">Medium</option>
+</select>
 
-<!-- USERS -->
-<div class="section">
-<h3 id="users">🔒 Locked Users</h3>
-<div id="lockedUsers" class="grid"></div>
-</div>
+<div id="alerts" class="grid"></div>
 
 </div>
 
 <script>
 
-// 🔐 ROLE PROTECTION
-if(localStorage.getItem("role") !== "ADMIN"){
-    window.location.href = "/";
-}
-
-// ✅ STATS
-function loadStats(){
-fetch('/admin/stats')
-.then(res => res.json())
-.then(data => {
-document.getElementById("stats").innerHTML = `
-<div class="card">Users: ${data.totalUsers}</div>
-<div class="card">Farmers: ${data.farmers}</div>
-<div class="card">Buyers: ${data.buyers}</div>`;
-});
-}
-
-// ✅ PRODUCTS
 function loadProducts(){
 fetch('/products/all')
-.then(res => res.json())
-.then(data => {
-
-let html = "";
-
-data.forEach(p => {
-html += `
+.then(res=>res.json())
+.then(data=>{
+let html="";
+data.forEach(p=>{
+html+=`
 <div class="card">
-<b>${p.name}</b><br><br>
-SKU: ${p.skuCode}<br>
-Qty: ${p.quantity}<br>
-Price: ₹${p.price}
-
-<input id="in-${p.productId}" placeholder="Add qty">
+<b>${p.name}</b><br>
+Qty:${p.quantity}
+<input id="in-${p.productId}" placeholder="Add">
 <button onclick="stockIn(${p.productId})">Stock In</button>
-
-<input id="out-${p.productId}" placeholder="Remove qty">
+<input id="out-${p.productId}" placeholder="Remove">
 <button onclick="stockOut(${p.productId})">Stock Out</button>
-
-<button class="danger" onclick="deleteProduct(${p.productId})">Delete</button>
 </div>`;
 });
-
-document.getElementById("products").innerHTML = html;
+document.getElementById("productList").innerHTML=html;
 });
 }
-
-// ✅ FARMER REQUESTS (FIXED)
-function loadRequests(){
-fetch('/admin/requests')
-.then(res => res.json())
-.then(data => {
-
-let html = "";
-
-// 🔥 HANDLE EMPTY
-if(data.length === 0){
-html = "<p>No pending farmer requests</p>";
-}
-
-data.forEach(r => {
-html += `
-<div class="card">
-<b>${r.name}</b><br>
-${r.email}<br><br>
-
-<button onclick="approve(${r.requestId})">
-✅ Approve Farmer
-</button>
-
-<button class="danger" onclick="deleteRequest(${r.requestId})">
-❌ Reject
-</button>
-</div>`;
-});
-
-document.getElementById("requests").innerHTML = html;
-});
-}
-
-// ✅ LOCKED USERS
-function loadLockedUsers(){
-fetch('/admin/locked-users')
-.then(res => res.json())
-.then(data => {
-
-let html = "";
-
-data.forEach(u => {
-html += `
-<div class="card">
-<b>${u.name}</b><br>
-${u.email}<br><br>
-
-<button onclick="unlock(${u.userId})">Unlock</button>
-<button class="danger" onclick="deleteUser(${u.userId})">Delete</button>
-</div>`;
-});
-
-document.getElementById("lockedUsers").innerHTML = html;
-});
-}
-
-// 🔥 ACTIONS
 
 function stockIn(id){
-const qty=document.getElementById("in-"+id).value;
-if(!qty){alert("Enter quantity");return;}
-fetch(`/products/stock-in?productId=${id}&quantity=${qty}`,{method:'POST'})
+let q=document.getElementById("in-"+id).value;
+fetch(`/products/stock-in?productId=${id}&quantity=${q}`,{method:'POST'})
 .then(()=>loadProducts());
 }
 
 function stockOut(id){
-const qty=document.getElementById("out-"+id).value;
-if(!qty){alert("Enter quantity");return;}
-fetch(`/products/stock-out?productId=${id}&quantity=${qty}`,{method:'POST'})
+let q=document.getElementById("out-"+id).value;
+fetch(`/products/stock-out?productId=${id}&quantity=${q}`,{method:'POST'})
 .then(()=>loadProducts());
 }
 
-function deleteProduct(id){
-fetch(`/products/delete/${id}`,{method:'DELETE'})
-.then(()=>loadProducts());
+function loadAlerts(){
+let severity=document.getElementById("alertFilter").value;
+let body={};
+if(severity) body.severity=severity;
+
+fetch('/api/alerts/filter',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(body)
+})
+.then(res=>res.json())
+.then(data=>{
+let html="";
+data.forEach(a=>{
+let color=a.severity==="HIGH"?"red":"orange";
+html+=`
+<div class="card" style="border-left:4px solid ${color}">
+${a.message}
+</div>`;
+});
+document.getElementById("alerts").innerHTML=html;
+});
 }
 
-function approve(id){
-fetch(`/admin/approve/${id}`,{method:'POST'})
-.then(()=>loadRequests());
-}
-
-function deleteRequest(id){
-fetch(`/admin/request/${id}`,{method:'DELETE'})
-.then(()=>loadRequests());
-}
-
-function unlock(id){
-fetch(`/admin/unlock/${id}`,{method:'POST'})
-.then(()=>loadLockedUsers());
-}
-
-function deleteUser(id){
-fetch(`/admin/user/${id}`,{method:'DELETE'})
-.then(()=>loadLockedUsers());
-}
-
-// 🚀 LOAD ALL
 window.onload=function(){
-loadStats();
 loadProducts();
-loadRequests();
-loadLockedUsers();
+loadAlerts();
 };
-
 </script>
 
 </body>

@@ -1,14 +1,15 @@
-package com.agri.agri_management.auth.service;
+package com.agri.agri_management.product.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.agri.agri_management.auth.entity.Product;
+import com.agri.agri_management.product.entity.Product;
 import com.agri.agri_management.auth.entity.Warehouse;
 import com.agri.agri_management.auth.entity.User;
-import com.agri.agri_management.auth.repository.ProductRepository;
+import com.agri.agri_management.product.repository.ProductRepository;
 import com.agri.agri_management.auth.repository.UserRepository;
 import com.agri.agri_management.auth.repository.WarehouseRepository;
+import com.agri.agri_management.alert.service.AlertService;
 
 import java.util.List;
 
@@ -24,10 +25,13 @@ public class ProductService {
     @Autowired
     private UserRepository userRepo;
 
-    // ✅ ADD PRODUCT (FINAL VERSION)
+    @Autowired
+    private AlertService alertService;
+
+    // ADD PRODUCT
     public String addProduct(Product product) {
 
-        // ✅ Step 1: Validate inputs
+        // Step 1: Validate inputs
         if (product.getName() == null || product.getName().isEmpty()) {
             return "Product name is required";
         }
@@ -36,7 +40,7 @@ public class ProductService {
             return "Quantity must be greater than 0";
         }
 
-        // 🔥 Step 2: Generate SKU safely
+        // Step 2: Generate SKU
         String name = product.getName();
 
         String prefix = name.length() >= 3
@@ -46,15 +50,17 @@ public class ProductService {
         String sku = prefix + "-" + System.currentTimeMillis();
         product.setSkuCode(sku);
 
+        // Step 3: Default min stock (for alerts)
+        if (product.getMinStockLevel() <= 0) {
+            product.setMinStockLevel(10);
+        }
 
-        // 🔥 Step 4: Find warehouse with space
+        // Step 4: Find warehouse
         List<Warehouse> warehouses = warehouseRepo.findAll();
-
         Warehouse selected = null;
 
         for (Warehouse w : warehouses) {
             int freeSpace = w.getCapacity() - w.getCurrentStock();
-
             if (freeSpace >= product.getQuantity()) {
                 selected = w;
                 break;
@@ -65,42 +71,47 @@ public class ProductService {
             return "No warehouse space available";
         }
 
-        // ✅ Step 5: Assign warehouse
+        // Step 5: Assign warehouse
         product.setWarehouseId(selected.getWarehouseId());
         product.setStatus("AVAILABLE");
 
-        // ✅ Step 6: Save product
+        // Step 6: Save product
         productRepo.save(product);
 
-        // ✅ Step 7: Update warehouse stock
+        // ALERT CHECK (important)
+        alertService.evaluateStockAlert(product);
+
+        // Step 7: Update warehouse
         selected.setCurrentStock(
                 selected.getCurrentStock() + product.getQuantity()
         );
-
         warehouseRepo.save(selected);
 
         return "Product added successfully";
     }
 
-    // ✅ GET ALL PRODUCTS
+    // GET ALL PRODUCTS
     public List<Product> getAllProducts() {
         return productRepo.findAll();
     }
 
+    // GET BY CATEGORY
     public List<Product> getProductsByCategory(String category) {
-    return productRepo.findByCategory(category);
-}
+        return productRepo.findByCategory(category);
+    }
 
-public String deleteProduct(Long id) {
-    productRepo.deleteById(id);
-    return "Product deleted successfully";
-}
-    // ✅ GET PRODUCTS BY FARMER
+    //  DELETE PRODUCT
+    public String deleteProduct(Long id) {
+        productRepo.deleteById(id);
+        return "Product deleted successfully";
+    }
+
+    // GET BY FARMER
     public List<Product> getProductsByFarmer(Long farmerId) {
         return productRepo.findByFarmerId(farmerId);
     }
 
-    // ✅ STOCK IN
+    // STOCK IN
     public String stockIn(Long productId, int quantity) {
 
         Product product = productRepo.findById(productId)
@@ -119,13 +130,16 @@ public String deleteProduct(Long id) {
         product.setStatus("AVAILABLE");
         productRepo.save(product);
 
+        // ALERT CHECK
+        alertService.evaluateStockAlert(product);
+
         warehouse.setCurrentStock(warehouse.getCurrentStock() + quantity);
         warehouseRepo.save(warehouse);
 
         return "Stock added successfully";
     }
 
-    // ✅ STOCK OUT
+    // STOCK OUT
     public String stockOut(Long productId, int quantity) {
 
         Product product = productRepo.findById(productId)
@@ -146,6 +160,9 @@ public String deleteProduct(Long id) {
         }
 
         productRepo.save(product);
+
+        // ALERT CHECK
+        alertService.evaluateStockAlert(product);
 
         warehouse.setCurrentStock(warehouse.getCurrentStock() - quantity);
         warehouseRepo.save(warehouse);

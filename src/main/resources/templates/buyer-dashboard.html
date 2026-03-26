@@ -2,234 +2,49 @@
 <html>
 <head>
 <title>Buyer Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
-
-body{
-display:flex;
-height:100vh;
-background:#020617;
-color:white;
-}
-
-/* GRID BACKGROUND */
-body::before{
-content:"";
-position:absolute;
-inset:0;
-background:
-linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-background-size:40px 40px;
-}
-
-/* SIDEBAR */
-.sidebar{
-width:230px;
-background:rgba(255,255,255,0.04);
-backdrop-filter:blur(20px);
-border-right:1px solid rgba(255,255,255,0.08);
-padding:20px;
-z-index:2;
-}
-
-.sidebar h2{margin-bottom:20px;}
-
-.sidebar a{
-display:block;
-padding:10px;
-border-radius:8px;
-color:#94a3b8;
-text-decoration:none;
-margin-bottom:8px;
-}
-
-.sidebar a:hover{
-background:rgba(255,255,255,0.05);
-color:white;
-}
-
-/* MAIN */
-.main{
-flex:1;
-padding:25px;
-overflow-y:auto;
-z-index:2;
-}
-
-.filter-box{
-margin-bottom:20px;
-}
-
-select{
-padding:10px;
-border-radius:8px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
-}
-
-/* GRID */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-}
-
-/* CARD */
-.card{
-padding:18px;
-border-radius:14px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-transition:.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
-box-shadow:0 20px 50px rgba(0,0,0,0.6);
-}
-
-input{
-width:100%;
-padding:8px;
-margin-top:10px;
-border-radius:8px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
-}
-
-button{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-border:none;
-background:#22c55e;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-opacity:.85;
-}
+body{background:#020617;color:white;font-family:Inter;padding:20px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+.card{background:#111;padding:15px;border-radius:10px;}
+input,button{width:100%;margin-top:8px;padding:8px;}
+button{background:#22c55e;color:white;}
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-<h2>🛒 Buyer</h2>
-<a href="/buyer-dashboard">Dashboard</a>
-<a href="#products">Products</a>
-<a href="/">Logout</a>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
 <h2>🛒 Buyer Dashboard</h2>
-
-<div class="filter-box">
-<label>Filter by Category</label><br><br>
-<select id="filterCategory" onchange="filterProducts()">
-<option value="">All</option>
-<option value="Vegetables">Vegetables</option>
-<option value="Fruits">Fruits</option>
-<option value="Seeds">Seeds</option>
-<option value="Plants">Plants</option>
-<option value="Fertilizer">Fertilizer</option>
-<option value="Pesticide">Pesticide</option>
-<option value="Tractor Parts">Tractor Parts</option>
-</select>
-</div>
 
 <div id="products" class="grid"></div>
 
-</div>
-
 <script>
 
-// 🔐 ROLE PROTECTION
-if(localStorage.getItem("role") !== "BUYER"){
-    window.location.href = "/";
+function load(){
+fetch('/products/all')
+.then(res=>res.json())
+.then(data=>{
+let html="";
+data.forEach(p=>{
+html+=`
+<div class="card">
+${p.name}<br>
+Qty:${p.quantity}
+
+<input id="buy-${p.productId}">
+<button onclick="buy(${p.productId})">Buy</button>
+</div>`;
+});
+products.innerHTML=html;
+});
 }
 
-// ✅ LOAD PRODUCTS
-function filterProducts(){
-
-    const category = document.getElementById("filterCategory").value;
-
-    let url = "/products/all";
-    if(category){
-        url = `/products/category?category=${category}`;
-    }
-
-    fetch(url)
-    .then(res => res.json())
-    .then(data => {
-
-        let html = "";
-
-        if(data.length === 0){
-            html = "<p>No products available</p>";
-        }
-
-        data.forEach(p => {
-            html += `
-            <div class="card">
-                <b>${p.name}</b><br><br>
-                SKU: ${p.skuCode}<br>
-                Category: ${p.category}<br>
-                Qty: ${p.quantity} ${p.unit}<br>
-                Price: ₹${p.price}
-
-                <input id="buy-${p.productId}" type="number" min="1" placeholder="Enter quantity">
-
-                <button onclick="buyProduct(${p.productId})">🛒 Buy</button>
-            </div>`;
-        });
-
-        document.getElementById("products").innerHTML = html;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error loading products");
-    });
+function buy(id){
+let q=document.getElementById("buy-"+id).value;
+fetch(`/products/stock-out?productId=${id}&quantity=${q}`,{method:'POST'})
+.then(()=>load());
 }
 
-// ✅ BUY PRODUCT (FIXED)
-function buyProduct(productId){
-
-    const qty = document.getElementById("buy-" + productId).value;
-
-    if(!qty || qty <= 0){
-        alert("Enter valid quantity");
-        return;
-    }
-
-    fetch(`/products/stock-out?productId=${productId}&quantity=${qty}`,{
-        method:'POST'
-    })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        filterProducts(); // refresh
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error while buying");
-    });
-}
-
-// 🚀 LOAD
-window.onload = filterProducts;
+window.onload=load;
 
 </script>
 
