@@ -32,4 +32,59 @@ public class Alert {
 
     @Enumerated(EnumType.STRING)
     private AlertStatus status;
+    public Long getAlertId() {
+        return alertId;
+    }
+
+    public void setAlertId(Long alertId) {
+        this.alertId = alertId;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public AlertType getAlertType() {
+        return alertType;
+    }
+
+    public void setAlertType(AlertType alertType) {
+        this.alertType = alertType;
+    }
+
+    public Severity getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public AlertStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AlertStatus status) {
+        this.status = status;
+    }
 }

@@ -10,6 +10,8 @@ import com.agri.agri_management.auth.entity.Status;
 import com.agri.agri_management.auth.entity.Role; // 🔥 IMPORTANT IMPORT
 
 public interface UserRepository extends JpaRepository<User, Long> {
+	
+	
 
     Optional<User> findByEmail(String email);
 

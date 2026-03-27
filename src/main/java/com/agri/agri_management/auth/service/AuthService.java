@@ -87,7 +87,7 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(user.getEmail());
 
-        return new AuthResponse(token, user.getRole().name());
+        return new AuthResponse(token, user.getRole().name(),user.getUserId());
     }
     public String sendResetOtp(String email) {
 

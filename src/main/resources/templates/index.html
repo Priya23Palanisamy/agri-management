@@ -92,6 +92,7 @@ password:password.value
 .then(res=>res.json())
 .then(data=>{
 localStorage.setItem("role",data.role);
+localStorage.setItem("userId", data.userId);
 
 if(data.role==="ADMIN") location="/admin-dashboard";
 else if(data.role==="FARMER") location="/farmer-dashboard";

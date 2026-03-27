@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 
 import com.agri.agri_management.product.entity.Product;
 import com.agri.agri_management.auth.entity.Warehouse;
-import com.agri.agri_management.auth.entity.User;
 import com.agri.agri_management.product.repository.ProductRepository;
-import com.agri.agri_management.auth.repository.UserRepository;
 import com.agri.agri_management.auth.repository.WarehouseRepository;
 import com.agri.agri_management.alert.service.AlertService;
+import com.agri.agri_management.auth.repository.*;
+import com.agri.agri_management.auth.entity.*;
 
 import java.util.List;
 
@@ -23,16 +23,21 @@ public class ProductService {
     private WarehouseRepository warehouseRepo;
 
     @Autowired
+    private AlertService alertService;
+    @Autowired
     private UserRepository userRepo;
 
-    @Autowired
-    private AlertService alertService;
-
     // ADD PRODUCT
-    public String addProduct(Product product) {
+    public String addProduct(Product product, Long userId) {
+    	
+    	 // 🔥 SET USER (IMPORTANT)
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Step 1: Validate inputs
-        if (product.getName() == null || product.getName().isEmpty()) {
+        product.setUser(user);
+
+        // ✅ FIXED VALIDATION
+        if (product.getName() == null || product.getName().trim().isEmpty()) {
             return "Product name is required";
         }
 
@@ -40,28 +45,20 @@ public class ProductService {
             return "Quantity must be greater than 0";
         }
 
-        // Step 2: Generate SKU
-        String name = product.getName();
+        // SKU
+        String prefix = product.getName().substring(0, Math.min(3, product.getName().length())).toUpperCase();
+        product.setSkuCode(prefix + "-" + System.currentTimeMillis());
 
-        String prefix = name.length() >= 3
-                ? name.substring(0, 3).toUpperCase()
-                : name.toUpperCase();
-
-        String sku = prefix + "-" + System.currentTimeMillis();
-        product.setSkuCode(sku);
-
-        // Step 3: Default min stock (for alerts)
         if (product.getMinStockLevel() <= 0) {
             product.setMinStockLevel(10);
         }
 
-        // Step 4: Find warehouse
+        // Warehouse allocation
         List<Warehouse> warehouses = warehouseRepo.findAll();
         Warehouse selected = null;
 
         for (Warehouse w : warehouses) {
-            int freeSpace = w.getCapacity() - w.getCurrentStock();
-            if (freeSpace >= product.getQuantity()) {
+            if ((w.getCapacity() - w.getCurrentStock()) >= product.getQuantity()) {
                 selected = w;
                 break;
             }
@@ -71,44 +68,37 @@ public class ProductService {
             return "No warehouse space available";
         }
 
-        // Step 5: Assign warehouse
         product.setWarehouseId(selected.getWarehouseId());
         product.setStatus("AVAILABLE");
 
-        // Step 6: Save product
         productRepo.save(product);
 
-        // ALERT CHECK (important)
         alertService.evaluateStockAlert(product);
 
-        // Step 7: Update warehouse
-        selected.setCurrentStock(
-                selected.getCurrentStock() + product.getQuantity()
-        );
+        selected.setCurrentStock(selected.getCurrentStock() + product.getQuantity());
         warehouseRepo.save(selected);
 
         return "Product added successfully";
     }
 
-    // GET ALL PRODUCTS
     public List<Product> getAllProducts() {
         return productRepo.findAll();
     }
 
-    // GET BY CATEGORY
-    public List<Product> getProductsByCategory(String category) {
-        return productRepo.findByCategory(category);
+    
+    
+    public List<Product> getProductsByUser(Long userId) {
+        return productRepo.findByUserUserId(userId);
     }
 
-    //  DELETE PRODUCT
     public String deleteProduct(Long id) {
         productRepo.deleteById(id);
-        return "Product deleted successfully";
+        return "Deleted";
     }
-
-    // GET BY FARMER
-    public List<Product> getProductsByFarmer(Long farmerId) {
-        return productRepo.findByFarmerId(farmerId);
+    
+ // GET BY CATEGORY
+    public List<Product> getProductsByCategory(String category) {
+        return productRepo.findByCategory(category);
     }
 
     // STOCK IN
@@ -128,9 +118,10 @@ public class ProductService {
 
         product.setQuantity(product.getQuantity() + quantity);
         product.setStatus("AVAILABLE");
+
         productRepo.save(product);
 
-        // ALERT CHECK
+        // 🔔 ALERT CHECK
         alertService.evaluateStockAlert(product);
 
         warehouse.setCurrentStock(warehouse.getCurrentStock() + quantity);
@@ -161,7 +152,7 @@ public class ProductService {
 
         productRepo.save(product);
 
-        // ALERT CHECK
+        // 🔔 ALERT CHECK
         alertService.evaluateStockAlert(product);
 
         warehouse.setCurrentStock(warehouse.getCurrentStock() - quantity);

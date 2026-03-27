@@ -42,23 +42,19 @@ public class AlertService {
         }
     }
 
-    //CREATE ALERT METHOD
     private void createAlert(Product product, AlertType type, Severity severity) {
 
-        boolean exists = alertRepository
-                .existsByProductIdAndAlertTypeAndStatus(
-                        product.getProductId(),
-                        type,
-                        AlertStatus.ACTIVE
-                );
+        // 🔥 CLOSE OLD ALERTS FIRST
+        var activeAlerts = alertRepository
+                .findByProductIdAndStatus(product.getProductId(), AlertStatus.ACTIVE);
 
-        //Prevent duplicate alerts
-        if (exists) {
-            return;
+        for (Alert a : activeAlerts) {
+            a.setStatus(AlertStatus.RESOLVED);
         }
 
-        // Create new alert
+        alertRepository.saveAll(activeAlerts);
 
+        // 🔥 NOW CREATE NEW ALERT
         Alert alert = new Alert();
         alert.setProductId(product.getProductId());
         alert.setAlertType(type);
@@ -69,10 +65,9 @@ public class AlertService {
 
         alertRepository.save(alert);
 
-        // Send notification
         notificationService.sendAlert(alert);
     }
-
+    
     // MESSAGE GENERATOR
     private String generateMessage(Product product, AlertType type) {
 

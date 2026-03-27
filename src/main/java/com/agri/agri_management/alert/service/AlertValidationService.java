@@ -12,9 +12,10 @@ public class AlertValidationService {
             return "Invalid product";
         }
 
-        if (!"ACTIVE".equalsIgnoreCase(product.getStatus())) {
-            return "Inactive product";
-        }
+        if (!"AVAILABLE".equalsIgnoreCase(product.getStatus()) &&
+        	    !"OUT_OF_STOCK".equalsIgnoreCase(product.getStatus())) {
+        	    return "Inactive product";
+        	}
 
         if (product.getMinStockLevel() < 0) {
             return "Invalid stock threshold";

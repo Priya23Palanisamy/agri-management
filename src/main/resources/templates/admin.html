@@ -1,114 +1,303 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Agri Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
-body{display:flex;height:100vh;background:#020617;color:white;}
-.sidebar{width:230px;background:rgba(255,255,255,0.04);padding:20px;}
-.main{flex:1;padding:25px;overflow-y:auto;}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
-.card{padding:18px;border-radius:14px;background:rgba(255,255,255,0.05);}
-input,select,button{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:none;}
-button{background:#22c55e;color:white;}
-.danger{background:#ef4444;}
-</style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+        body{
+            display:flex;
+            height:100vh;
+            background: linear-gradient(135deg, #1b5e20, #66bb6a);
+            color:white;
+        }
+
+        /* 🌾 Sidebar */
+        .sidebar{
+            width:230px;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            padding:20px;
+        }
+
+        .sidebar h2{
+            margin-bottom:20px;
+        }
+
+        .sidebar a{
+            display:block;
+            padding:10px;
+            border-radius:8px;
+            color:#e8f5e9;
+            text-decoration:none;
+            margin-bottom:8px;
+        }
+
+        .sidebar a:hover{
+            background:rgba(255,255,255,0.2);
+        }
+
+        /* 🌿 Main */
+        .main{
+            flex:1;
+            padding:25px;
+            overflow-y:auto;
+        }
+
+        .section{margin-bottom:30px;}
+
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:20px;
+        }
+
+        /* 🌱 Cards */
+        .card{
+            padding:18px;
+            border-radius:14px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            color:#1b5e20;
+            font-weight:500;
+        }
+
+        /* 🌼 Inputs & Buttons */
+        input,select{
+            width:100%;
+            padding:8px;
+            margin-top:6px;
+            border-radius:8px;
+            border:none;
+        }
+
+        button{
+            width:100%;
+            padding:8px;
+            margin-top:6px;
+            border:none;
+            border-radius:8px;
+            background:#2e7d32;
+            color:white;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#1b5e20;
+        }
+
+        .danger{background:#c62828;}
+        .approve{background:#388e3c;}
+        .unlock{background:#1565c0;}
+
+        .empty{text-align:center;color:#eee;}
+    </style>
 </head>
 
 <body>
 
+<!-- 🌾 SIDEBAR -->
 <div class="sidebar">
-<h2>⚙️ Admin</h2>
-<a href="#">Dashboard</a>
-<a href="#inventory">Inventory</a>
-<a href="#alerts">Alerts</a>
-<a href="/">Logout</a>
+    <h2>🌱 Agri Admin</h2>
+    <a href="#">Dashboard</a>
+    <a href="#products">🌾 Inventory</a>
+    <a href="#requests">👨‍🌾 Farmers</a>
+    <a href="#users">👤 Users</a>
+    <a href="#alerts">🔔 Alerts</a>
+    <a href="/">🚪 Logout</a>
 </div>
 
+<!-- 🌿 MAIN -->
 <div class="main">
 
-<h2>📊 Admin Dashboard</h2>
+    <h2>📊 Agri Dashboard</h2>
 
-<h3 id="inventory">📦 Inventory</h3>
-<div id="productList" class="grid"></div>
+    <!-- STATS -->
+    <div class="section">
+        <h3>🌿 System Overview</h3>
+        <div id="stats" class="grid"></div>
+    </div>
 
-<h3 id="alerts">🔔 Alerts</h3>
+    <!-- INVENTORY -->
+    <div class="section">
+        <h3 id="products">🌾 Inventory</h3>
+        <div id="productsList" class="grid"></div>
+    </div>
 
-<select id="alertFilter" onchange="loadAlerts()">
-<option value="">All</option>
-<option value="HIGH">High</option>
-<option value="MEDIUM">Medium</option>
-</select>
+    <!-- FARMERS -->
+    <div class="section">
+        <h3 id="requests">👨‍🌾 Farmer Requests</h3>
+        <div id="requestsList" class="grid"></div>
+    </div>
 
-<div id="alerts" class="grid"></div>
+    <!-- USERS -->
+    <div class="section">
+        <h3 id="users">🔒 Locked Users</h3>
+        <div id="lockedUsers" class="grid"></div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section">
+        <h3 id="alerts">🚨 Alerts</h3>
+
+        <select id="alertFilter" onchange="loadAlerts()">
+            <option value="">All</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+        </select>
+
+        <div id="alertsContainer" class="grid"></div>
+    </div>
 
 </div>
 
 <script>
 
+// ROLE CHECK
+if(localStorage.getItem("role") !== "ADMIN"){
+    window.location.href = "/";
+}
+
+// STATS
+function loadStats(){
+    fetch('/admin/stats')
+    .then(res=>res.json())
+    .then(data=>{
+        document.getElementById("stats").innerHTML=`
+        <div class="card">👤 Users: ${data.totalUsers}</div>
+        <div class="card">👨‍🌾 Farmers: ${data.farmers}</div>
+        <div class="card">🛒 Buyers: ${data.buyers}</div>`;
+    });
+}
+
+// PRODUCTS
 function loadProducts(){
-fetch('/products/all')
-.then(res=>res.json())
-.then(data=>{
-let html="";
-data.forEach(p=>{
-html+=`
-<div class="card">
-<b>${p.name}</b><br>
-Qty:${p.quantity}
-<input id="in-${p.productId}" placeholder="Add">
-<button onclick="stockIn(${p.productId})">Stock In</button>
-<input id="out-${p.productId}" placeholder="Remove">
-<button onclick="stockOut(${p.productId})">Stock Out</button>
-</div>`;
-});
-document.getElementById("productList").innerHTML=html;
-});
+    fetch('/products/all')
+    .then(res=>res.json())
+    .then(data=>{
+        let html="";
+        data.forEach(p=>{
+            html+=`
+            <div class="card">
+            🌾 <b>${p.name}</b><br>
+            Qty: ${p.quantity}<br>
+            Price: ₹${p.price}
+
+            <input id="in-${p.productId}" placeholder="Add qty">
+            <button onclick="stockIn(${p.productId})">Stock In</button>
+
+            <input id="out-${p.productId}" placeholder="Remove qty">
+            <button onclick="stockOut(${p.productId})">Stock Out</button>
+
+            <button class="danger" onclick="deleteProduct(${p.productId})">Delete</button>
+            </div>`;
+        });
+        document.getElementById("productsList").innerHTML=html;
+    });
 }
 
-function stockIn(id){
-let q=document.getElementById("in-"+id).value;
-fetch(`/products/stock-in?productId=${id}&quantity=${q}`,{method:'POST'})
-.then(()=>loadProducts());
+// FARMERS
+function loadRequests(){
+    fetch('/admin/requests')
+    .then(res=>res.json())
+    .then(data=>{
+        let html="";
+        if(data.length===0){html="<p class='empty'>No requests</p>";}
+        data.forEach(r=>{
+            html+=`
+            <div class="card">
+            👨‍🌾 <b>${r.name}</b><br>${r.email}<br><br>
+            <button class="approve" onclick="approve(${r.requestId})">Approve</button>
+            <button class="danger" onclick="deleteRequest(${r.requestId})">Reject</button>
+            </div>`;
+        });
+        document.getElementById("requestsList").innerHTML=html;
+    });
 }
 
-function stockOut(id){
-let q=document.getElementById("out-"+id).value;
-fetch(`/products/stock-out?productId=${id}&quantity=${q}`,{method:'POST'})
-.then(()=>loadProducts());
+// USERS
+function loadLockedUsers(){
+    fetch('/admin/locked-users')
+    .then(res=>res.json())
+    .then(data=>{
+        let html="";
+        if(data.length===0){html="<p class='empty'>No locked users</p>";}
+        data.forEach(u=>{
+            html+=`
+            <div class="card">
+            👤 <b>${u.name}</b><br>${u.email}<br><br>
+            <button class="unlock" onclick="unlock(${u.userId})">Unlock</button>
+            <button class="danger" onclick="deleteUser(${u.userId})">Delete</button>
+            </div>`;
+        });
+        document.getElementById("lockedUsers").innerHTML=html;
+    });
 }
 
+// ALERTS
 function loadAlerts(){
-let severity=document.getElementById("alertFilter").value;
-let body={};
-if(severity) body.severity=severity;
+    let severity=document.getElementById("alertFilter").value;
+    let body={};
+    if(severity){body.severity=severity;}
 
-fetch('/api/alerts/filter',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify(body)
-})
-.then(res=>res.json())
-.then(data=>{
-let html="";
-data.forEach(a=>{
-let color=a.severity==="HIGH"?"red":"orange";
-html+=`
-<div class="card" style="border-left:4px solid ${color}">
-${a.message}
-</div>`;
-});
-document.getElementById("alerts").innerHTML=html;
-});
+    fetch('/api/alerts/filter',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        let html="";
+        if(data.length===0){html="<p class='empty'>No alerts</p>";}
+        data.forEach(a=>{
+            let color=a.severity==="HIGH"?"#c62828":"#f9a825";
+            html+=`
+            <div class="card" style="border-left:5px solid ${color}">
+            🚨 <b>${a.severity}</b><br>${a.message}
+            </div>`;
+        });
+        document.getElementById("alertsContainer").innerHTML=html;
+    });
 }
 
+// ACTIONS
+function stockIn(id){
+    let q=document.getElementById("in-"+id).value;
+    fetch(`/products/stock-in?productId=${id}&quantity=${q}`,{method:'POST'}).then(()=>loadProducts());
+}
+function stockOut(id){
+    let q=document.getElementById("out-"+id).value;
+    fetch(`/products/stock-out?productId=${id}&quantity=${q}`,{method:'POST'}).then(()=>loadProducts());
+}
+function deleteProduct(id){
+    fetch(`/products/delete/${id}`,{method:'DELETE'}).then(()=>loadProducts());
+}
+function approve(id){
+    fetch(`/admin/approve/${id}`,{method:'POST'}).then(()=>loadRequests());
+}
+function deleteRequest(id){
+    fetch(`/admin/request/${id}`,{method:'DELETE'}).then(()=>loadRequests());
+}
+function unlock(id){
+    fetch(`/admin/unlock/${id}`,{method:'POST'}).then(()=>loadLockedUsers());
+}
+function deleteUser(id){
+    fetch(`/admin/user/${id}`,{method:'DELETE'}).then(()=>loadLockedUsers());
+}
+
+// LOAD ALL
 window.onload=function(){
-loadProducts();
-loadAlerts();
+    loadStats();
+    loadProducts();
+    loadRequests();
+    loadLockedUsers();
+    loadAlerts();
 };
+
 </script>
 
 </body>
