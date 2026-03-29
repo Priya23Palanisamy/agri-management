@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agri Admin — Transactions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        body{display:flex;height:100vh;background:linear-gradient(135deg,#1b5e20,#66bb6a);color:white;}
+        .sidebar{width:230px;background:rgba(0,0,0,0.2);backdrop-filter:blur(10px);padding:20px;}
+        .sidebar h2{margin-bottom:20px;}
+        .sidebar a{display:block;padding:10px;border-radius:8px;color:#e8f5e9;text-decoration:none;margin-bottom:8px;}
+        .sidebar a:hover{background:rgba(255,255,255,0.2);}
+        .sidebar a.active{background:rgba(255,255,255,0.2);}
+        .main{flex:1;padding:25px;overflow-y:auto;}
+        .section{margin-bottom:30px;}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;}
+        .card{padding:18px;border-radius:14px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);color:#1b5e20;font-weight:500;}
+        .card .big{font-size:26px;font-weight:600;color:#1b5e20;}
+        .card .lbl{font-size:12px;color:#2e7d32;margin-top:4px;}
+        .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+        input,select{padding:8px;border-radius:8px;border:none;}
+        .table-wrap{background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border-radius:14px;overflow:hidden;}
+        table{width:100%;border-collapse:collapse;}
+        thead tr{background:rgba(0,0,0,0.15);}
+        thead th{padding:12px 14px;text-align:left;font-size:11px;font-weight:500;color:#c8e6c9;letter-spacing:0.05em;text-transform:uppercase;}
+        tbody tr{border-top:1px solid rgba(255,255,255,0.06);}
+        tbody tr:hover{background:rgba(255,255,255,0.07);}
+        tbody td{padding:11px 14px;font-size:13px;color:#e8f5e9;}
+        .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+        .badge-in{background:rgba(34,197,94,0.25);color:#bbf7d0;}
+        .badge-out{background:rgba(239,68,68,0.25);color:#fecaca;}
+        .badge-add{background:rgba(59,130,246,0.25);color:#bfdbfe;}
+        .badge-buy{background:rgba(168,85,247,0.25);color:#e9d5ff;}
+        .empty{text-align:center;padding:30px;color:#a5d6a7;font-size:14px;}
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>🌱 Agri Admin</h2>
+    <a href="/admin-dashboard">Dashboard</a>
+    <a href="/admin-dashboard#products">🌾 Inventory</a>
+    <a href="/admin-dashboard#requests">👨‍🌾 Farmers</a>
+    <a href="/admin-dashboard#users">👤 Users</a>
+    <a href="/admin-dashboard#alerts">🔔 Alerts</a>
+    <a href="/admin-transactions" class="active">📋 Transactions</a>
+    <a href="/">🚪 Logout</a>
+</div>
+
+<div class="main">
+    <h2>📋 Transaction History</h2>
+
+    <div class="section">
+        <div class="grid">
+            <div class="card"><div class="big" id="totalCount">0</div><div class="lbl">Total</div></div>
+            <div class="card"><div class="big" id="inCount">0</div><div class="lbl">Stock In</div></div>
+            <div class="card"><div class="big" id="outCount">0</div><div class="lbl">Stock Out</div></div>
+            <div class="card"><div class="big" id="addCount">0</div><div class="lbl">Products Added</div></div>
+            <div class="card"><div class="big" id="buyCount">0</div><div class="lbl">Purchases</div></div>
+        </div>
+    </div>
+
+    <div class="filters">
+        <select id="typeFilter" onchange="applyFilter()">
+            <option value="">All Types</option>
+            <option value="STOCK_IN">Stock In</option>
+            <option value="STOCK_OUT">Stock Out</option>
+            <option value="PRODUCT_ADDED">Product Added</option>
+            <option value="PURCHASE">Purchase</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>#</th><th>Product</th><th>User</th><th>Type</th><th>Qty</th><th>Price</th><th>Note</th><th>Date & Time</th></tr>
+                </thead>
+                <tbody id="txBody">
+                <tr><td colspan="8" class="empty">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    if(localStorage.getItem("role")!=="ADMIN"){ window.location.href="/"; }
+
+    let allData=[];
+
+    function loadTransactions(){
+        fetch('/transactions/all')
+        .then(res=>res.json())
+        .then(data=>{ allData=data; updateSummary(data); renderTable(data); })
+        .catch(()=>{ document.getElementById("txBody").innerHTML='<tr><td colspan="8" class="empty">Failed to load</td></tr>'; });
+    }
+
+    function updateSummary(data){
+        document.getElementById("totalCount").textContent=data.length;
+        document.getElementById("inCount").textContent=data.filter(d=>d.transactionType==="STOCK_IN").length;
+        document.getElementById("outCount").textContent=data.filter(d=>d.transactionType==="STOCK_OUT").length;
+        document.getElementById("addCount").textContent=data.filter(d=>d.transactionType==="PRODUCT_ADDED").length;
+        document.getElementById("buyCount").textContent=data.filter(d=>d.transactionType==="PURCHASE").length;
+    }
+
+    function applyFilter(){
+        const type=document.getElementById("typeFilter").value;
+        renderTable(type ? allData.filter(d=>d.transactionType===type) : allData);
+    }
+
+    function renderTable(data){
+        if(data.length===0){ document.getElementById("txBody").innerHTML='<tr><td colspan="8" class="empty">No transactions found</td></tr>'; return; }
+        let html="";
+        data.forEach((t,i)=>{
+            html+=`<tr>
+                <td style="color:#a5d6a7">${i+1}</td>
+                <td><b>${t.productName}</b></td>
+                <td>${t.userName||'-'}</td>
+                <td>${badge(t.transactionType)}</td>
+                <td>${t.quantity}</td>
+                <td>₹${t.price}</td>
+                <td style="color:#a5d6a7">${t.note||'-'}</td>
+                <td style="color:#81c784">${fmt(t.transactionDate)}</td>
+            </tr>`;
+        });
+        document.getElementById("txBody").innerHTML=html;
+    }
+
+    function badge(type){
+        const m={STOCK_IN:['badge-in','Stock In'],STOCK_OUT:['badge-out','Stock Out'],PRODUCT_ADDED:['badge-add','Added'],PURCHASE:['badge-buy','Purchase']};
+        const [c,l]=m[type]||['badge-add',type];
+        return `<span class="badge ${c}">${l}</span>`;
+    }
+
+    function fmt(dt){
+        if(!dt) return '-';
+        const d=new Date(dt);
+        return d.toLocaleDateString('en-IN')+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    }
+
+    window.onload=loadTransactions;
+</script>
+</body>
+</html>

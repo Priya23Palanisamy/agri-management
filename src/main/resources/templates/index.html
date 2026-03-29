@@ -1,104 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Login</title>
+    <title>Login</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 
-body{
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-background:#020617;
-color:white;
-}
+        body{
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background:#020617;
+        color:white;
+        }
 
-/* GRID BACKGROUND */
-body::before{
-content:"";
-position:absolute;
-inset:0;
-background:
-linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-background-size:40px 40px;
-}
+        /* GRID BACKGROUND */
+        body::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size:40px 40px;
+        }
 
-/* CARD */
-.card{
-width:340px;
-padding:35px;
-border-radius:18px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-text-align:center;
-z-index:2;
-}
+        /* CARD */
+        .card{
+        width:340px;
+        padding:35px;
+        border-radius:18px;
+        background:rgba(255,255,255,0.05);
+        border:1px solid rgba(255,255,255,0.08);
+        text-align:center;
+        z-index:2;
+        }
 
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:10px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
-}
+        input{
+        width:100%;
+        padding:12px;
+        margin:10px 0;
+        border-radius:10px;
+        border:none;
+        background:rgba(255,255,255,0.1);
+        color:white;
+        }
 
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:10px;
-border:none;
-background:#22c55e;
-color:white;
-cursor:pointer;
-}
-</style>
+        button{
+        width:100%;
+        padding:12px;
+        margin-top:10px;
+        border-radius:10px;
+        border:none;
+        background:#22c55e;
+        color:white;
+        cursor:pointer;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="card">
 
-<h2>🌱 Login</h2>
+    <h2>🌱 Login</h2>
 
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
 
-<button onclick="login()">Login</button>
+    <button onclick="login()">Login</button>
 
-<a href="/farmer">Farmer Register</a><br>
-<a href="/buyer">Buyer Register</a><br>
-<a href="/forgot-password">Forgot Password?</a>
+    <a href="/farmer">Farmer Register</a><br>
+    <a href="/buyer">Buyer Register</a><br>
+    <a href="/forgot-password">Forgot Password?</a>
 
 </div>
 
 <script>
-function login(){
-fetch('/auth/login',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-email:email.value,
-password:password.value
-})
-})
-.then(res=>res.json())
-.then(data=>{
-localStorage.setItem("role",data.role);
-localStorage.setItem("userId", data.userId);
+    function login(){
+    fetch('/auth/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+    email:email.value,
+    password:password.value
+    })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+    localStorage.setItem("role",data.role);
+    localStorage.setItem("userId", data.userId);
 
-if(data.role==="ADMIN") location="/admin-dashboard";
-else if(data.role==="FARMER") location="/farmer-dashboard";
-else location="/buyer-dashboard";
-});
-}
+    if(data.role==="ADMIN") location="/admin";
+    else if(data.role==="FARMER") location="/farmer-dashboard";
+    else location="/buyer-dashboard";
+    });
+    }
 </script>
 
 </body>

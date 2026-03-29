@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Transaction History</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Inter',sans-serif;
+        }
+
+        /* 🌱 KEEP GREEN BACKGROUND */
+        body{
+            background:linear-gradient(135deg,#166534,#22c55e);
+            color:white;
+            padding:25px;
+        }
+
+        /* HEADER */
+        .header{
+            font-size:24px;
+            font-weight:600;
+            margin-bottom:20px;
+            color:#ffffff;
+        }
+
+        /* SUMMARY */
+        .summary{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+            gap:15px;
+            margin-bottom:20px;
+        }
+
+        .card{
+            background:rgba(0,0,0,0.4);
+            padding:15px;
+            border-radius:12px;
+            text-align:center;
+            backdrop-filter:blur(6px);
+        }
+
+        .card .num{
+            font-size:22px;
+            font-weight:600;
+            color:#ffffff;
+        }
+
+        .card .label{
+            font-size:12px;
+            color:#d1fae5;
+        }
+
+        /* FILTER */
+        select{
+            padding:10px;
+            border-radius:8px;
+            margin-bottom:20px;
+            background:#064e3b;
+            color:white;
+            border:none;
+        }
+
+        /* TABLE BOX */
+        .table-wrap{
+            background:#020617; /* DARK BOX FOR VISIBILITY */
+            border-radius:14px;
+            overflow:hidden;
+            box-shadow:0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        /* TABLE */
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        /* HEADER */
+        th{
+            background:#065f46;
+            padding:14px;
+            font-size:12px;
+            color:#d1fae5;
+            text-transform:uppercase;
+        }
+
+        /* ROW */
+        td{
+            padding:14px;
+            border-top:1px solid #064e3b;
+            color:#ffffff;
+        }
+
+        /* HOVER */
+        tr:hover td{
+            background:#064e3b;
+        }
+
+        /* BADGES */
+        .badge{
+            padding:4px 10px;
+            border-radius:20px;
+            font-size:11px;
+            font-weight:500;
+        }
+
+        .in{background:#22c55e;color:white;}
+        .out{background:#ef4444;color:white;}
+        .add{background:#3b82f6;color:white;}
+        .buy{background:#a855f7;color:white;}
+
+        /* EMPTY */
+        .empty{
+            text-align:center;
+            padding:30px;
+            color:#bbf7d0;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="header">📋 Transaction History</div>
+
+<div class="summary">
+    <div class="card"><div class="num" id="totalCount">0</div><div class="label">Total</div></div>
+    <div class="card"><div class="num" id="inCount">0</div><div class="label">Stock In</div></div>
+    <div class="card"><div class="num" id="outCount">0</div><div class="label">Stock Out</div></div>
+    <div class="card"><div class="num" id="buyCount">0</div><div class="label">Purchases</div></div>
+</div>
+
+<select id="typeFilter" onchange="applyFilter()">
+    <option value="">All Types</option>
+    <option value="STOCK_IN">Stock In</option>
+    <option value="STOCK_OUT">Stock Out</option>
+    <option value="PRODUCT_ADDED">Product Added</option>
+    <option value="PURCHASE">Purchase</option>
+</select>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Product</th>
+            <th>User</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Note</th>
+            <th>Date & Time</th>
+        </tr>
+        </thead>
+
+        <tbody id="txBody">
+        <tr><td colspan="8" class="empty">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+    const userId = localStorage.getItem("userId");
+
+    if(!userId){
+        alert("Please login first");
+        window.location.href="/";
+    }
+
+    let allData=[];
+
+    function loadTransactions(){
+        fetch('/transactions/user?userId='+userId)
+        .then(res=>res.json())
+        .then(data=>{
+            allData=data;
+            updateSummary(data);
+            renderTable(data);
+        })
+        .catch(()=>{
+            document.getElementById("txBody").innerHTML =
+            '<tr><td colspan="8" class="empty">Failed to load</td></tr>';
+        });
+    }
+
+    function updateSummary(data){
+        document.getElementById("totalCount").textContent=data.length;
+        document.getElementById("inCount").textContent=data.filter(d=>d.transactionType==="STOCK_IN").length;
+        document.getElementById("outCount").textContent=data.filter(d=>d.transactionType==="STOCK_OUT").length;
+        document.getElementById("buyCount").textContent=data.filter(d=>d.transactionType==="PURCHASE").length;
+    }
+
+    function applyFilter(){
+        const type=document.getElementById("typeFilter").value;
+        renderTable(type ? allData.filter(d=>d.transactionType===type) : allData);
+    }
+
+    function renderTable(data){
+        if(data.length===0){
+            document.getElementById("txBody").innerHTML =
+            '<tr><td colspan="8" class="empty">No transactions found</td></tr>';
+            return;
+        }
+
+        let html="";
+        data.forEach((t,i)=>{
+            html+=`<tr>
+                <td>${i+1}</td>
+                <td><b>${t.productName}</b></td>
+                <td>${t.userName}</td>
+                <td>${badge(t.transactionType)}</td>
+                <td>${t.quantity}</td>
+                <td>₹${t.price}</td>
+                <td>${t.note || '-'}</td>
+                <td>${formatDate(t.transactionDate)}</td>
+            </tr>`;
+        });
+
+        document.getElementById("txBody").innerHTML=html;
+    }
+
+    function badge(type){
+        if(type==="STOCK_IN") return '<span class="badge in">Stock In</span>';
+        if(type==="STOCK_OUT") return '<span class="badge out">Stock Out</span>';
+        if(type==="PRODUCT_ADDED") return '<span class="badge add">Added</span>';
+        if(type==="PURCHASE") return '<span class="badge buy">Purchase</span>';
+        return type;
+    }
+
+    function formatDate(dt){
+        if(!dt) return '-';
+        const d=new Date(dt);
+        return d.toLocaleDateString('en-IN')+' '+d.toLocaleTimeString('en-IN',{
+            hour:'2-digit',
+            minute:'2-digit'
+        });
+    }
+
+    window.onload=loadTransactions;
+
+</script>
+
+</body>
+</html>

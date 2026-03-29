@@ -11,7 +11,6 @@ public class PageController {
         return "index";
     }
 
-    // ✅ Only return HTML page (NOT API)
     @GetMapping("/farmer")
     public String farmer() {
         return "farmer";
@@ -37,13 +36,24 @@ public class PageController {
         return "buyer-dashboard";
     }
 
+    // ✅ FIXED HERE
     @GetMapping("/admin-dashboard")
     public String adminDashboard() {
-        return "admin";
+        return "admin-dashboard";
     }
 
     @GetMapping("/forgot-password")
     public String forgotPasswordPage() {
         return "forgot-password";
+    }
+
+    @GetMapping("/transaction-history")
+    public String transactionHistory() {
+        return "transaction-history";
+    }
+
+    @GetMapping("/admin-transactions")
+    public String adminTransactions() {
+        return "admin-transactions";
     }
 }

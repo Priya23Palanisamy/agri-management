@@ -16,7 +16,6 @@
             color:white;
         }
 
-        /* 🌾 Sidebar */
         .sidebar{
             width:230px;
             background: rgba(0,0,0,0.2);
@@ -41,7 +40,6 @@
             background:rgba(255,255,255,0.2);
         }
 
-        /* 🌿 Main */
         .main{
             flex:1;
             padding:25px;
@@ -56,17 +54,15 @@
             gap:20px;
         }
 
-        /* 🌱 Cards */
         .card{
             padding:18px;
             border-radius:14px;
             background: rgba(255,255,255,0.15);
             backdrop-filter: blur(8px);
-            color:#1b5e20;
+            color:white;
             font-weight:500;
         }
 
-        /* 🌼 Inputs & Buttons */
         input,select{
             width:100%;
             padding:8px;
@@ -100,7 +96,7 @@
 
 <body>
 
-<!-- 🌾 SIDEBAR -->
+<!-- SIDEBAR -->
 <div class="sidebar">
     <h2>🌱 Agri Admin</h2>
     <a href="#">Dashboard</a>
@@ -108,39 +104,36 @@
     <a href="#requests">👨‍🌾 Farmers</a>
     <a href="#users">👤 Users</a>
     <a href="#alerts">🔔 Alerts</a>
+    <!-- ✅ PATCH: Transactions link added -->
+    <a href="/admin-transactions">📋 Transactions</a>
     <a href="/">🚪 Logout</a>
 </div>
 
-<!-- 🌿 MAIN -->
+<!-- MAIN -->
 <div class="main">
 
     <h2>📊 Agri Dashboard</h2>
 
-    <!-- STATS -->
     <div class="section">
         <h3>🌿 System Overview</h3>
         <div id="stats" class="grid"></div>
     </div>
 
-    <!-- INVENTORY -->
     <div class="section">
         <h3 id="products">🌾 Inventory</h3>
         <div id="productsList" class="grid"></div>
     </div>
 
-    <!-- FARMERS -->
     <div class="section">
         <h3 id="requests">👨‍🌾 Farmer Requests</h3>
         <div id="requestsList" class="grid"></div>
     </div>
 
-    <!-- USERS -->
     <div class="section">
         <h3 id="users">🔒 Locked Users</h3>
         <div id="lockedUsers" class="grid"></div>
     </div>
 
-    <!-- ALERTS -->
     <div class="section">
         <h3 id="alerts">🚨 Alerts</h3>
 
@@ -157,146 +150,146 @@
 
 <script>
 
-// ROLE CHECK
-if(localStorage.getItem("role") !== "ADMIN"){
-    window.location.href = "/";
-}
+    if(localStorage.getItem("role") !== "ADMIN"){
+        window.location.href = "/";
+    }
 
-// STATS
-function loadStats(){
-    fetch('/admin/stats')
-    .then(res=>res.json())
-    .then(data=>{
-        document.getElementById("stats").innerHTML=`
-        <div class="card">👤 Users: ${data.totalUsers}</div>
-        <div class="card">👨‍🌾 Farmers: ${data.farmers}</div>
-        <div class="card">🛒 Buyers: ${data.buyers}</div>`;
-    });
-}
-
-// PRODUCTS
-function loadProducts(){
-    fetch('/products/all')
-    .then(res=>res.json())
-    .then(data=>{
-        let html="";
-        data.forEach(p=>{
-            html+=`
-            <div class="card">
-            🌾 <b>${p.name}</b><br>
-            Qty: ${p.quantity}<br>
-            Price: ₹${p.price}
-
-            <input id="in-${p.productId}" placeholder="Add qty">
-            <button onclick="stockIn(${p.productId})">Stock In</button>
-
-            <input id="out-${p.productId}" placeholder="Remove qty">
-            <button onclick="stockOut(${p.productId})">Stock Out</button>
-
-            <button class="danger" onclick="deleteProduct(${p.productId})">Delete</button>
-            </div>`;
+    function loadStats(){
+        fetch('/admin/stats')
+        .then(res=>res.json())
+        .then(data=>{
+            document.getElementById("stats").innerHTML=`
+            <div class="card">👤 Users: ${data.totalUsers}</div>
+            <div class="card">👨‍🌾 Farmers: ${data.farmers}</div>
+            <div class="card">🛒 Buyers: ${data.buyers}</div>`;
         });
-        document.getElementById("productsList").innerHTML=html;
-    });
-}
+    }
 
-// FARMERS
-function loadRequests(){
-    fetch('/admin/requests')
-    .then(res=>res.json())
-    .then(data=>{
-        let html="";
-        if(data.length===0){html="<p class='empty'>No requests</p>";}
-        data.forEach(r=>{
-            html+=`
-            <div class="card">
-            👨‍🌾 <b>${r.name}</b><br>${r.email}<br><br>
-            <button class="approve" onclick="approve(${r.requestId})">Approve</button>
-            <button class="danger" onclick="deleteRequest(${r.requestId})">Reject</button>
-            </div>`;
+    function loadProducts(){
+        fetch('/products/all')
+        .then(res=>res.json())
+        .then(data=>{
+            let html="";
+            data.forEach(p=>{
+                html+=`
+                <div class="card">
+                🌾 <b>${p.name}</b><br>
+                Qty: ${p.quantity}<br>
+                Price: ₹${p.price}
+
+                <input id="in-${p.productId}" placeholder="Add qty">
+                <button onclick="stockIn(${p.productId})">Stock In</button>
+
+                <input id="out-${p.productId}" placeholder="Remove qty">
+                <button onclick="stockOut(${p.productId})">Stock Out</button>
+
+                <button class="danger" onclick="deleteProduct(${p.productId})">Delete</button>
+                </div>`;
+            });
+            document.getElementById("productsList").innerHTML=html;
         });
-        document.getElementById("requestsList").innerHTML=html;
-    });
-}
+    }
 
-// USERS
-function loadLockedUsers(){
-    fetch('/admin/locked-users')
-    .then(res=>res.json())
-    .then(data=>{
-        let html="";
-        if(data.length===0){html="<p class='empty'>No locked users</p>";}
-        data.forEach(u=>{
-            html+=`
-            <div class="card">
-            👤 <b>${u.name}</b><br>${u.email}<br><br>
-            <button class="unlock" onclick="unlock(${u.userId})">Unlock</button>
-            <button class="danger" onclick="deleteUser(${u.userId})">Delete</button>
-            </div>`;
+    function loadRequests(){
+        fetch('/admin/requests')
+        .then(res=>res.json())
+        .then(data=>{
+            let html="";
+            if(data.length===0){html="<p class='empty'>No requests</p>";}
+            data.forEach(r=>{
+                html+=`
+                <div class="card">
+                👨‍🌾 <b>${r.name}</b><br>${r.email}<br><br>
+                <button class="approve" onclick="approve(${r.requestId})">Approve</button>
+                <button class="danger" onclick="deleteRequest(${r.requestId})">Reject</button>
+                </div>`;
+            });
+            document.getElementById("requestsList").innerHTML=html;
         });
-        document.getElementById("lockedUsers").innerHTML=html;
-    });
-}
+    }
 
-// ALERTS
-function loadAlerts(){
-    let severity=document.getElementById("alertFilter").value;
-    let body={};
-    if(severity){body.severity=severity;}
-
-    fetch('/api/alerts/filter',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(body)
-    })
-    .then(res=>res.json())
-    .then(data=>{
-        let html="";
-        if(data.length===0){html="<p class='empty'>No alerts</p>";}
-        data.forEach(a=>{
-            let color=a.severity==="HIGH"?"#c62828":"#f9a825";
-            html+=`
-            <div class="card" style="border-left:5px solid ${color}">
-            🚨 <b>${a.severity}</b><br>${a.message}
-            </div>`;
+    function loadLockedUsers(){
+        fetch('/admin/locked-users')
+        .then(res=>res.json())
+        .then(data=>{
+            let html="";
+            if(data.length===0){html="<p class='empty'>No locked users</p>";}
+            data.forEach(u=>{
+                html+=`
+                <div class="card">
+                👤 <b>${u.name}</b><br>${u.email}<br><br>
+                <button class="unlock" onclick="unlock(${u.userId})">Unlock</button>
+                <button class="danger" onclick="deleteUser(${u.userId})">Delete</button>
+                </div>`;
+            });
+            document.getElementById("lockedUsers").innerHTML=html;
         });
-        document.getElementById("alertsContainer").innerHTML=html;
-    });
-}
+    }
 
-// ACTIONS
-function stockIn(id){
-    let q=document.getElementById("in-"+id).value;
-    fetch(`/products/stock-in?productId=${id}&quantity=${q}`,{method:'POST'}).then(()=>loadProducts());
-}
-function stockOut(id){
-    let q=document.getElementById("out-"+id).value;
-    fetch(`/products/stock-out?productId=${id}&quantity=${q}`,{method:'POST'}).then(()=>loadProducts());
-}
-function deleteProduct(id){
-    fetch(`/products/delete/${id}`,{method:'DELETE'}).then(()=>loadProducts());
-}
-function approve(id){
-    fetch(`/admin/approve/${id}`,{method:'POST'}).then(()=>loadRequests());
-}
-function deleteRequest(id){
-    fetch(`/admin/request/${id}`,{method:'DELETE'}).then(()=>loadRequests());
-}
-function unlock(id){
-    fetch(`/admin/unlock/${id}`,{method:'POST'}).then(()=>loadLockedUsers());
-}
-function deleteUser(id){
-    fetch(`/admin/user/${id}`,{method:'DELETE'}).then(()=>loadLockedUsers());
-}
+    function loadAlerts(){
+        let severity=document.getElementById("alertFilter").value;
+        let body={};
+        if(severity){body.severity=severity;}
 
-// LOAD ALL
-window.onload=function(){
-    loadStats();
-    loadProducts();
-    loadRequests();
-    loadLockedUsers();
-    loadAlerts();
-};
+        fetch('/api/alerts/filter',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(body)
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            let html="";
+            if(data.length===0){html="<p class='empty'>No alerts</p>";}
+            data.forEach(a=>{
+                let color=a.severity==="HIGH"?"#c62828":"#f9a825";
+                html+=`
+                <div class="card" style="border-left:5px solid ${color}">
+                🚨 <b>${a.severity}</b><br>${a.message}
+                </div>`;
+            });
+            document.getElementById("alertsContainer").innerHTML=html;
+        });
+    }
+
+    // ✅ PATCH: userId added to record transaction
+    function stockIn(id){
+        let q=document.getElementById("in-"+id).value;
+        const adminId = localStorage.getItem("userId");
+        fetch(`/products/stock-in?productId=${id}&quantity=${q}&userId=${adminId}`,{method:'POST'})
+        .then(()=>loadProducts());
+    }
+
+    // ✅ PATCH: userId added to record transaction
+    function stockOut(id){
+        let q=document.getElementById("out-"+id).value;
+        const adminId = localStorage.getItem("userId");
+        fetch(`/products/stock-out?productId=${id}&quantity=${q}&userId=${adminId}`,{method:'POST'})
+        .then(()=>loadProducts());
+    }
+
+    function deleteProduct(id){
+        fetch(`/products/delete/${id}`,{method:'DELETE'}).then(()=>loadProducts());
+    }
+    function approve(id){
+        fetch(`/admin/approve/${id}`,{method:'POST'}).then(()=>loadRequests());
+    }
+    function deleteRequest(id){
+        fetch(`/admin/request/${id}`,{method:'DELETE'}).then(()=>loadRequests());
+    }
+    function unlock(id){
+        fetch(`/admin/unlock/${id}`,{method:'POST'}).then(()=>loadLockedUsers());
+    }
+    function deleteUser(id){
+        fetch(`/admin/user/${id}`,{method:'DELETE'}).then(()=>loadLockedUsers());
+    }
+
+    window.onload=function(){
+        loadStats();
+        loadProducts();
+        loadRequests();
+        loadLockedUsers();
+        loadAlerts();
+    };
 
 </script>
 

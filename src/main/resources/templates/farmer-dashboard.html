@@ -1,95 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Farmer Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Farmer Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body{
-    background: linear-gradient(135deg,#1b5e20,#66bb6a);
-    color:white;
-    font-family:sans-serif;
-    padding:20px;
-}
+    <style>
+        body{
+            background: linear-gradient(135deg,#1b5e20,#66bb6a);
+            color:white;
+            font-family:sans-serif;
+            padding:20px;
+        }
 
-/* FORM BOX */
-.form-box{
-    max-width:450px;
-    margin:auto;
-    background:rgba(0,0,0,0.2);
-    padding:20px;
-    border-radius:12px;
-}
+        .form-box{
+            max-width:450px;
+            margin:auto;
+            background:rgba(0,0,0,0.2);
+            padding:20px;
+            border-radius:12px;
+        }
 
-/* GRID */
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:20px;
-    margin-top:20px;
-}
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:20px;
+            margin-top:20px;
+        }
 
-/* CARD */
-.card{
-    background:rgba(0,0,0,0.3);
-    padding:15px;
-    border-radius:10px;
-}
+        .card{
+            background:rgba(0,0,0,0.3);
+            padding:15px;
+            border-radius:10px;
+        }
 
-/* INPUTS */
-input,select{
-    width:100%;
-    padding:10px;
-    margin-top:8px;
-    border-radius:6px;
-    border:none;
-}
+        input,select{
+            width:100%;
+            padding:10px;
+            margin-top:8px;
+            border-radius:6px;
+            border:none;
+        }
 
-/* BUTTON */
-button{
-    width:100%;
-    padding:10px;
-    margin-top:8px;
-    border:none;
-    border-radius:6px;
-    background:#2e7d32;
-    color:white;
-    cursor:pointer;
-}
+        button{
+            width:100%;
+            padding:10px;
+            margin-top:8px;
+            border:none;
+            border-radius:6px;
+            background:#2e7d32;
+            color:white;
+            cursor:pointer;
+        }
 
-button:hover{
-    background:#1b5e20;
-}
-</style>
+        button:hover{
+            background:#1b5e20;
+        }
+    </style>
 </head>
 
 <body>
 
 <h2>🌾 Farmer Dashboard</h2>
 
+
 <!-- ADD PRODUCT -->
 <div class="form-box">
 
-<h3>Add Product</h3>
+    <h3>Add Product</h3>
 
-<input id="name" placeholder="Product Name">
+    <input id="name" placeholder="Product Name">
 
-<select id="category">
-<option>Vegetables</option>
-<option>Fruits</option>
-<option>Rice</option>
-<option>Grains</option>
-<option>Pulses</option>
-<option>Others</option>
-</select>
+    <select id="category">
+        <option>Vegetables</option>
+        <option>Fruits</option>
+        <option>Rice</option>
+        <option>Grains</option>
+        <option>Pulses</option>
+        <option>Others</option>
+    </select>
 
-<input id="quantity" type="number" placeholder="Quantity">
-<input id="unit" placeholder="Unit">
-<input id="price" type="number" placeholder="Price">
-<input id="expiry" type="date">
-<input id="minStock" type="number" placeholder="Min Stock Level">
+    <input id="quantity" type="number" placeholder="Quantity">
+    <input id="unit" placeholder="Unit">
+    <input id="price" type="number" placeholder="Price">
+    <input id="expiry" type="date">
+    <input id="minStock" type="number" placeholder="Min Stock Level">
 
-<button onclick="addProduct()">Add Product</button>
+    <button onclick="addProduct()">Add Product</button>
 
 </div>
 
@@ -98,131 +94,127 @@ button:hover{
 
 <script>
 
-// 🔐 Check login
-const farmerId = localStorage.getItem("userId");
-console.log("Farmer ID:", farmerId);
+    const farmerId = localStorage.getItem("userId");
+    console.log("Farmer ID:", farmerId);
 
-if(!farmerId){
-    alert("Please login first");
-    window.location.href = "/";
-}
+    if(!farmerId){
+        alert("Please login first");
+        window.location.href = "/";
+    }
 
-function addProduct() {
+    function addProduct() {
 
-    const userId = localStorage.getItem("userId");
+        const userId = localStorage.getItem("userId");
 
-    const name = document.getElementById("name").value.trim();
-    const category = document.getElementById("category").value;
-    const quantity = document.getElementById("quantity").value;
-    const unit = document.getElementById("unit").value;
-    const price = document.getElementById("price").value;
-    const expiry = document.getElementById("expiry").value;
-    const minStock = document.getElementById("minStock").value;
+        const name = document.getElementById("name").value.trim();
+        const category = document.getElementById("category").value;
+        const quantity = document.getElementById("quantity").value;
+        const unit = document.getElementById("unit").value;
+        const price = document.getElementById("price").value;
+        const expiry = document.getElementById("expiry").value;
+        const minStock = document.getElementById("minStock").value;
 
-    // 🔥 ADD IT HERE (DEBUG)
-    console.log({
-        name: name,
-        category: category,
-        quantity: quantity
-    });
+        console.log({ name: name, category: category, quantity: quantity });
 
-    fetch('/products/add?userId=' + userId, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            name: name,
-            category: category,
-            quantity: quantity,
-            unit: unit,
-            price: price,
-            expiryDate: expiry,
-            minStockLevel: minStock || 10
+        fetch('/products/add?userId=' + userId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                category: category,
+                quantity: quantity,
+                unit: unit,
+                price: price,
+                expiryDate: expiry,
+                minStockLevel: minStock || 10
+            })
         })
-    })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
-        loadProducts();
-    });
-}
-// 📦 LOAD PRODUCTS (ONLY THIS FARMER)
-function loadProducts(){
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadProducts();
+        });
+    }
 
-fetch('/products/farmer?userId=' + farmerId)
-.then(res=>res.json())
-.then(data=>{
+    function loadProducts(){
 
-let html="";
+        fetch('/products/farmer?userId=' + farmerId)
+        .then(res=>res.json())
+        .then(data=>{
 
-if(data.length === 0){
-    html = "<p>No products added yet</p>";
-}
+            let html="";
 
-data.forEach(p=>{
-html+=`
-<div class="card">
-🌾 <b>${p.name}</b><br>
-Category: ${p.category}<br>
-Qty: ${p.quantity}<br>
-Price: ₹${p.price}<br>
-Status: ${p.status}<br><br>
+            if(data.length === 0){
+                html = "<p>No products added yet</p>";
+            }
 
-<input id="in-${p.productId}" type="number" placeholder="Add quantity">
-<button onclick="stockIn(${p.productId})">➕ Stock In</button>
+            data.forEach(p=>{
+                html+=`
+                <div class="card">
+                🌾 <b>${p.name}</b><br>
+                Category: ${p.category}<br>
+                Qty: ${p.quantity}<br>
+                Price: ₹${p.price}<br>
+                Status: ${p.status}<br><br>
 
-<input id="out-${p.productId}" type="number" placeholder="Remove quantity">
-<button onclick="stockOut(${p.productId})">➖ Stock Out</button>
+                <input id="in-${p.productId}" type="number" placeholder="Add quantity">
+                <button onclick="stockIn(${p.productId})">➕ Stock In</button>
 
-</div>`;
-});
+                <input id="out-${p.productId}" type="number" placeholder="Remove quantity">
+                <button onclick="stockOut(${p.productId})">➖ Stock Out</button>
 
-document.getElementById("products").innerHTML = html;
+                </div>`;
+            });
 
-});
-}
+            document.getElementById("products").innerHTML = html;
+        });
+    }
 
-// ➕ STOCK IN
-function stockIn(id){
+    // ✅ PATCH: userId added to record transaction
+    function stockIn(id){
 
-const qty = document.getElementById("in-"+id).value;
+        const qty = document.getElementById("in-"+id).value;
 
-if(!qty){
-    alert("Enter quantity");
-    return;
-}
+        if(!qty){
+            alert("Enter quantity");
+            return;
+        }
 
-fetch(`/products/stock-in?productId=${id}&quantity=${qty}`,{
-method:'POST'
-})
-.then(res=>res.text())
-.then(msg=>{
-    alert(msg);
-    loadProducts();
-});
-}
+        const userId = localStorage.getItem("userId");
 
-// ➖ STOCK OUT
-function stockOut(id){
+        fetch(`/products/stock-in?productId=${id}&quantity=${qty}&userId=${userId}`,{
+            method:'POST'
+        })
+        .then(res=>res.text())
+        .then(msg=>{
+            alert(msg);
+            loadProducts();
+        });
+    }
 
-const qty = document.getElementById("out-"+id).value;
+    // ✅ PATCH: userId added to record transaction
+    function stockOut(id){
 
-if(!qty){
-    alert("Enter quantity");
-    return;
-}
+        const qty = document.getElementById("out-"+id).value;
 
-fetch(`/products/stock-out?productId=${id}&quantity=${qty}`,{
-method:'POST'
-})
-.then(res=>res.text())
-.then(msg=>{
-    alert(msg);
-    loadProducts();
-});
-}
+        if(!qty){
+            alert("Enter quantity");
+            return;
+        }
 
-// 🚀 LOAD ON START
-window.onload = loadProducts;
+        const userId = localStorage.getItem("userId");
+
+        fetch(`/products/stock-out?productId=${id}&quantity=${qty}&userId=${userId}`,{
+            method:'POST'
+        })
+        .then(res=>res.text())
+        .then(msg=>{
+            alert(msg);
+            loadProducts();
+        });
+    }
+
+    window.onload = loadProducts;
 
 </script>
 

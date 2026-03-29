@@ -16,46 +16,38 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // ADD PRODUCT
     @PostMapping("/add")
-    public String addProduct(@RequestBody Product product,@RequestParam Long userId) {
-        return productService.addProduct(product,userId);
+    public String addProduct(@RequestBody Product product, @RequestParam Long userId) {
+        return productService.addProduct(product, userId);
     }
 
-    // GET ALL
     @GetMapping("/all")
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
-    }
+    public List<Product> getAllProducts() { return productService.getAllProducts(); }
 
     @GetMapping("/farmer")
     public List<Product> getFarmerProducts(@RequestParam Long userId) {
         return productService.getProductsByUser(userId);
     }
 
-    // GET BY CATEGORY
     @GetMapping("/category")
     public List<Product> getByCategory(@RequestParam String category) {
         return productService.getProductsByCategory(category);
     }
 
-    // DELETE
     @DeleteMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable Long id) {
-        return productService.deleteProduct(id);
-    }
+    public String deleteProduct(@PathVariable Long id) { return productService.deleteProduct(id); }
 
-    // STOCK IN
     @PostMapping("/stock-in")
     public String stockIn(@RequestParam Long productId,
-                          @RequestParam int quantity) {
-        return productService.stockIn(productId, quantity);
+                          @RequestParam int quantity,
+                          @RequestParam(required = false, defaultValue = "0") Long userId) {
+        return productService.stockIn(productId, quantity, userId);
     }
 
-    // STOCK OUT
     @PostMapping("/stock-out")
     public String stockOut(@RequestParam Long productId,
-                           @RequestParam int quantity) {
-        return productService.stockOut(productId, quantity);
+                           @RequestParam int quantity,
+                           @RequestParam(required = false, defaultValue = "0") Long userId) {
+        return productService.stockOut(productId, quantity, userId);
     }
 }
