@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 @Service
 public class ReportValidationService {
-    private static final List<String> VALID_TYPES = Arrays.asList("STOCK","TRANSACTION","ANALYTICS");
+    private static final List<String> VALID_TYPES = Arrays.asList("STOCK","ANALYTICS");
     public void validate(ReportRequest request) {
         if (request.getReportType() == null || request.getReportType().isEmpty())
             throw new IllegalArgumentException("Report type is required.");
