@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html>
 <head>
     <title>Agri Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
@@ -18,7 +18,7 @@
 
         .sidebar{
             width:230px;
-            background: rgba(0,0,0,0.2);
+            background: rgba(29, 23, 23, 0.2);
             backdrop-filter: blur(10px);
             padding:20px;
         }
@@ -106,6 +106,7 @@
     <a href="#alerts">🔔 Alerts</a>
     <!-- ✅ PATCH: Transactions link added -->
     <a href="/admin-transactions">📋 Transactions</a>
+    <a href="#reports">📊 Reports</a>
     <a href="/">🚪 Logout</a>
 </div>
 
@@ -146,9 +147,136 @@
         <div id="alertsContainer" class="grid"></div>
     </div>
 
+    <div class="section">
+        <h3 id="reports">📊 Reports</h3>
+
+        <div class="card" style="margin-bottom:15px;">
+            <label>Report Type</label>
+            <select id="reportType">
+                <option value="STOCK">Stock Report</option>
+                <option value="TRANSACTION">Transaction Report</option>
+                <option value="ANALYTICS">Analytics Report</option>
+            </select>
+
+            <label>Category (optional)</label>
+            <input type="text" id="reportCategory" placeholder="e.g. Vegetables">
+
+            <label>Start Date</label>
+            <input type="date" id="reportStartDate">
+
+            <label>End Date</label>
+            <input type="date" id="reportEndDate">
+
+            <button onclick="generateReport()">📊 Generate Report</button>
+            <button onclick="exportCSV()" style="background:#1565c0;">⬇️ Export CSV</button>
+            <button onclick="exportPDF()" style="background:#6a1b9a;">⬇️ Export PDF</button>
+           <!-- TABLE -->
+<div id="tableContainer" style="display:none;">
+    <h3>📋 Transaction Table</h3>
+    <table id="reportTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </div>
 
+<!-- CHART -->
+<canvas id="reportChart"></canvas>
+
 <script>
+
+let chart;
+
+// MAIN FUNCTION
+async function generateReport() {
+
+    const type = document.getElementById("reportType").value;
+
+    const res = await fetch('/api/reports/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ reportType: type })
+    });
+
+    const data = await res.json();
+
+    // Hide everything first
+    document.getElementById("tableContainer").style.display = "none";
+    document.getElementById("reportChart").style.display = "none";
+
+    // 🔹 TRANSACTION → TABLE
+    if (type === "TRANSACTION") {
+        showTable(data.transactionsList || []);
+    }
+
+    // 🔹 ANALYTICS → PIE CHART
+    else if (type === "ANALYTICS") {
+        showChart(data.barChartData || {}, "pie");
+    }
+
+    // 🔹 STOCK → BAR CHART
+    else {
+        showChart(data.barChartData || {}, "bar");
+    }
+}
+
+
+// TABLE FUNCTION
+function showTable(transactions) {
+
+    const tableBody = document.querySelector("#reportTable tbody");
+    tableBody.innerHTML = "";
+
+    transactions.forEach(t => {
+        const row = `
+            <tr>
+                <td>${t.id}</td>
+                <td>${t.productName}</td>
+                <td>${t.type}</td>
+                <td>${t.quantity}</td>
+                <td>${t.date}</td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
+
+    document.getElementById("tableContainer").style.display = "block";
+}
+
+
+// CHART FUNCTION
+function showChart(chartData, chartType) {
+
+    document.getElementById("reportChart").style.display = "block";
+
+    if (chart) chart.destroy();
+
+    const ctx = document.getElementById("reportChart");
+
+    chart = new Chart(ctx, {
+        type: chartType, // bar or pie
+        data: {
+            labels: Object.keys(chartData),
+            datasets: [{
+                label: "Report Data",
+                data: Object.values(chartData),
+                backgroundColor: ["green", "blue", "orange", "purple", "red"]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+ 
 
     if(localStorage.getItem("role") !== "ADMIN"){
         window.location.href = "/";
@@ -282,6 +410,98 @@
     function deleteUser(id){
         fetch(`/admin/user/${id}`,{method:'DELETE'}).then(()=>loadLockedUsers());
     }
+    function getReportBody(){
+        return {
+            reportType: document.getElementById("reportType").value,
+            category: document.getElementById("reportCategory").value,
+            startDate: document.getElementById("reportStartDate").value || null,
+            endDate: document.getElementById("reportEndDate").value || null
+        };
+    }
+        async function generateReport() {
+
+    const type = document.getElementById("reportType").value;
+
+    const body = {
+        reportType: type,
+        category: document.getElementById("reportCategory").value || null,
+        startDate: document.getElementById("reportStartDate").value || null,
+        endDate: document.getElementById("reportEndDate").value || null
+    };
+
+    const res = await fetch('/api/reports/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    // Hide all
+    document.getElementById("tableContainer").style.display = "none";
+    document.getElementById("reportChart").style.display = "none";
+
+    // 🔹 TRANSACTION → TABLE
+    if (type === "TRANSACTION") {
+        showTable(data.transactionsList || []);
+    }
+
+    // 🔹 ANALYTICS → PIE
+    else if (type === "ANALYTICS") {
+        showChart(data.barChartData || {}, "pie");
+    }
+
+    // 🔹 STOCK → BAR
+    else {
+        showChart(data.barChartData || {}, "bar");
+    }
+}
+    
+            <div class="card">
+                <b>📊 Report: ${data.reportType}</b><br>
+                Generated: ${data.generatedAt}<br><br>
+                📦 Total Stock: ${data.totalStock}<br>
+                💰 Stock Value: ₹${data.totalStockValue}<br>
+                🔄 Transactions: ${data.totalTransactions}<br>
+                💵 Revenue: ₹${data.totalRevenue}<br><br>
+                <b>📈 Fast Moving:</b> ${data.fastMovingItems?.join(", ") || "None"}<br>
+                <b>📉 Slow Moving:</b> ${data.slowMovingItems?.join(", ") || "None"}<br>
+                <b>⚠️ Stock Issues:</b> ${data.stockIssues?.join(", ") || "None"}<br><br>
+                <b>💡 Recommendations:</b><br>
+                ${data.recommendations?.map(r=>`• ${r}`).join("<br>") || "None"}
+            </div>`;
+        });
+    }
+
+    function exportCSV(){
+        fetch('/api/reports/export/csv',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(getReportBody())
+        })
+        .then(res=>res.blob())
+        .then(blob=>{
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');
+            a.href=url; a.download='report.csv'; a.click();
+        });
+    }
+
+    function exportPDF(){
+        fetch('/api/reports/export/pdf',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(getReportBody())
+        })
+        .then(res=>res.blob())
+        .then(blob=>{
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');
+            a.href=url; a.download='report.pdf'; a.click();
+        });
+    }
+
+    
 
     window.onload=function(){
         loadStats();
