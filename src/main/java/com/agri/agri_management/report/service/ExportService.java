@@ -21,14 +21,36 @@ public class ExportService {
         return out.toByteArray();
     }
     public byte[] exportToPdf(ReportResponse report) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("AGRI MANAGEMENT REPORT\n\n");
-        sb.append("Report Type: ").append(report.getReportType()).append("\n");
-        sb.append("Generated At: ").append(report.getGeneratedAt()).append("\n");
-        sb.append("Total Stock: ").append(report.getTotalStock()).append("\n");
-        sb.append("Total Revenue: ").append(report.getTotalRevenue()).append("\n\n");
-        sb.append("Recommendations:\n");
-        if (report.getRecommendations() != null) report.getRecommendations().forEach(r -> sb.append("- ").append(r).append("\n"));
-        return sb.toString().getBytes();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(document, out);
+
+            document.open();
+
+            document.add(new com.itextpdf.text.Paragraph("AGRI MANAGEMENT REPORT"));
+            document.add(new com.itextpdf.text.Paragraph(" "));
+            document.add(new com.itextpdf.text.Paragraph("Report Type: " + report.getReportType()));
+            document.add(new com.itextpdf.text.Paragraph("Generated At: " + report.getGeneratedAt()));
+            document.add(new com.itextpdf.text.Paragraph("Total Stock: " + report.getTotalStock()));
+            document.add(new com.itextpdf.text.Paragraph("Total Revenue: " + report.getTotalRevenue()));
+
+            document.add(new com.itextpdf.text.Paragraph(" "));
+            document.add(new com.itextpdf.text.Paragraph("Recommendations:"));
+
+            if (report.getRecommendations() != null) {
+                for (String r : report.getRecommendations()) {
+                    document.add(new com.itextpdf.text.Paragraph("- " + r));
+                }
+            }
+
+            document.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return out.toByteArray();
     }
 }

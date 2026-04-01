@@ -315,6 +315,42 @@
             document.getElementById("alertsContainer").innerHTML=html;
         });
     }
+    
+ // ✅ ADD BACK THESE FUNCTIONS
+
+    function stockIn(id){
+        let q=document.getElementById("in-"+id).value;
+        const adminId = localStorage.getItem("userId");
+        fetch(`/products/stock-in?productId=${id}&quantity=${q}&userId=${adminId}`,{method:'POST'})
+        .then(()=>loadProducts());
+    }
+
+    function stockOut(id){
+        let q=document.getElementById("out-"+id).value;
+        const adminId = localStorage.getItem("userId");
+        fetch(`/products/stock-out?productId=${id}&quantity=${q}&userId=${adminId}`,{method:'POST'})
+        .then(()=>loadProducts());
+    }
+
+    function deleteProduct(id){
+        fetch(`/products/delete/${id}`,{method:'DELETE'}).then(()=>loadProducts());
+    }
+
+    function approve(id){
+        fetch(`/admin/approve/${id}`,{method:'POST'}).then(()=>loadRequests());
+    }
+
+    function deleteRequest(id){
+        fetch(`/admin/request/${id}`,{method:'DELETE'}).then(()=>loadRequests());
+    }
+
+    function unlock(id){
+        fetch(`/admin/unlock/${id}`,{method:'POST'}).then(()=>loadLockedUsers());
+    }
+
+    function deleteUser(id){
+        fetch(`/admin/user/${id}`,{method:'DELETE'}).then(()=>loadLockedUsers());
+    }
 
     // REPORT LOGIC ONLY
     let chart;
@@ -389,10 +425,10 @@
         });
     }
 
-    function exportCSV(){
+    function exportPDF(){
         const type = document.getElementById("reportType").value;
 
-        fetch('/api/reports/export/csv', {
+        fetch('/api/reports/export/pdf', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -406,7 +442,7 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "report.csv";
+            a.download = "report.pdf";
             document.body.appendChild(a);
             a.click();
             a.remove();
